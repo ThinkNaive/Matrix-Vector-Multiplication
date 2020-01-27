@@ -7,20 +7,26 @@ if __name__ == "__main__":
     ADDR = (HOST, PORT)
 
     tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcpSerSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     tcpSerSock.bind(ADDR)
     tcpSerSock.listen(5)
 
     while True:
-        print('waiting for connection ...')
-        tcpCliSock, addr = tcpSerSock.accept()
-        print('connected from ', addr)
-        while True:
-            print('-> receiving data ...')
-            data = tcpCliSock.recv(BUFSIZE)
-            if data == 'exit':
-                break
-            print(data)
-            data = None
-        tcpCliSock.close()
+        try:
+            print('waiting for connection ...')
+            tcpCliSock, addr = tcpSerSock.accept()
+            print('connected from ', addr)
+            while True:
+                print('-> receiving data ...')
+                data = tcpCliSock.recv(BUFSIZE).decode(encoding='utf-8')
+                if not data or data == 'exit':
+                    break
+                if data == 'shutdown':
+                    tcpCliSock.close()
+                    raise(KeyboardInterrupt)
+                print(data)
+            tcpCliSock.close()
+        except KeyboardInterrupt:
+            break
 
     tcpSerSock.close()
