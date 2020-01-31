@@ -7,19 +7,19 @@ import threading
 # 此类需要进行初始化，Handler.inputList\Handler.srvHandle需要赋初值
 class Handler(socketserver.BaseRequestHandler):
     # 此处为静态变量
-    srvHandle = None                    # 服务句柄，用于控制服务端开关流程
-    bindings = []                       # 工作节点-计算任务绑定列表
-    slaveNum = 0                        # 工作节点数量
-    inputList = []                      # 总计算任务
-    semInput = threading.Semaphore(1)   # 用于输入值冲突的信号量
-    outputList = []                     # 工作节点的输出值列表
+    srvHandle = None  # 服务句柄，用于控制服务端开关流程
+    bindings = []  # 工作节点-计算任务绑定列表
+    slaveNum = 0  # 工作节点数量
+    inputList = []  # 总计算任务
+    semInput = threading.Semaphore(1)  # 用于输入值冲突的信号量
+    outputList = []  # 工作节点的输出值列表
     semOutput = threading.Semaphore(1)  # 用于输入值冲突的信号量
 
     def __init__(self, request, client_address, server):
         socketserver.BaseRequestHandler.__init__(self, request, client_address, server)
         # 此处为成员变量
-        self.binding = None     # 工作节点-计算任务绑定
-        self.input = None      # 单片计算任务
+        self.binding = None  # 工作节点-计算任务绑定
+        self.input = None  # 单片计算任务
 
     def handle(self):
         print('new connection coming: %s' % str(self.client_address))
@@ -35,7 +35,7 @@ class Handler(socketserver.BaseRequestHandler):
             return
 
         print('new connection assigned: %s' % str(self.client_address))
-        while len(Handler.inputList):    # 当所有计算任务分配完毕，则所有线程开始运行
+        while len(Handler.inputList):  # 当所有计算任务分配完毕，则所有线程开始运行
             pass
 
         # 向slave发送所有数据
@@ -94,3 +94,13 @@ class Handler(socketserver.BaseRequestHandler):
             print(e)
             rec = None
         return rec
+
+    # 编码函数，将输入的计算任务编码为字节并发送
+    @classmethod
+    def encode(cls, data):
+        pass
+
+    # 解码函数，对工作节点计算结果进行解码
+    @classmethod
+    def decode(cls, data):
+        pass
