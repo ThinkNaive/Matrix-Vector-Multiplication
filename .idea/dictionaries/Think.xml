@@ -2,6 +2,7 @@
   <dictionary name="Think">
     <words>
       <w>bufsize</w>
+      <w>dtype</w>
     </words>
   </dictionary>
 </component>
