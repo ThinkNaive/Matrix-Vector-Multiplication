@@ -1,6 +1,9 @@
 # Matrix-Vector-Multiplication
 现在master.py和slave.py仅有**基础**的通信功能
 
+## 测试方法
+&emsp;打开若干个命令行窗口，master一个，slave数量=len(data)，分别在窗口调用`python master.py`和`python slave.py`
+
 ## 主节点调用格式（master.py）
 
 ### 步骤1
