@@ -1,5 +1,5 @@
 # Matrix-Vector-Multiplication
-现在master.py和slave.py仅有**最基础**的通信（小于1024字节）功能
+现在master.py和slave.py仅有**基础**的通信功能
 
 ## 主节点调用格式（master.py）
 
