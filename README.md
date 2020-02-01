@@ -4,14 +4,14 @@
 ## 测试方法
 &emsp;打开若干个命令行窗口，master一个，slave数量=len(data)，分别在窗口调用`python master.py`和`python slave.py`
 
-## 主节点调用格式（master.py）
+## 主节点代码含义（master.py）
 
 ### 步骤1
 &emsp;`Handler.run(host, port, data)`将建立对端口的监听，并对输入数据分片，交由工作节点计算，当所有计算任务完成时，此方法收集计算结果并返回
 ### 步骤2
 &emsp;`Handler.outputList`返回各工作节点的计算结果
 
-## 工作节点调用格式（slave.py）
+## 工作节点代码含义（slave.py）
 
 ### 步骤1
 &emsp;`handle = Handler(host, port)`将建立一个新实例
