@@ -1,5 +1,5 @@
-import numpy as np
 import pickle
+import uuid
 
 
 # 编码函数，将输入的计算任务编码为字节并发送
@@ -20,8 +20,10 @@ def send(request, data):
         request.sendall(msg)
         msg = 'EOF'.encode('utf-8')
         request.sendall(msg)
+        return True
     except Exception as e:
         print(e)
+        return False
 
 
 # 主节点等待工作节点返回分片计算结果，接收完成的标志为EOF
@@ -45,6 +47,14 @@ def receive(request):
         print(e)
         rec = None
     return rec
+
+
+# 生成不重复的uuid（8位）
+def UUID(table: dict):
+    key = uuid.uuid1().hex[:-24]
+    while table.__contains__(key):
+        key = uuid.uuid1().hex[:-24]
+    return key
 
 
 # class Tree(object):
