@@ -132,10 +132,11 @@ class Handler(socketserver.BaseRequestHandler):
             Handler.semOutput.release()
             return True
 
-    # 当所有线程执行完毕时，关闭服务（尝试关闭socket server）
+    # 当所有线程执行完毕时，关闭服务（尝试关闭socket server），增加reject情况
     @staticmethod
     def close():
-        if (np.array(list(Handler.slaveRec.values())) == 'poll').all():
+        status = np.array(list(Handler.slaveRec.values()))
+        if np.logical_or(status == 'poll', status == 'reject').all():
             Handler.server.shutdown()
 
     # 在主节点程序中调用以执行分布式任务
