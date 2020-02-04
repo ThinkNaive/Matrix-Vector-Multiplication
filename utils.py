@@ -1,5 +1,9 @@
 import pickle
+import time
 import uuid
+
+# 日志语句输出开关
+verbose = False  # type:bool
 
 
 # 编码函数，将输入的计算任务编码为字节并发送
@@ -20,9 +24,11 @@ def send(request, data):
         request.sendall(msg)
         msg = 'EOF'.encode('utf-8')
         request.sendall(msg)
+        time.sleep(0.1)  # 解决粘包问题
         return True
     except Exception as e:
         print(e)
+        time.sleep(0.1)  # 解决粘包问题
         return False
 
 
@@ -56,9 +62,6 @@ def UUID(table: dict):
         key = uuid.uuid1().hex[:-24]
     return key
 
-
-# 日志语句输出开关
-verbose = False  # type:bool
 
 # class Tree(object):
 #     def __init__(self, data):

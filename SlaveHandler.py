@@ -63,6 +63,7 @@ class Handler:
                 self.sock.close()
                 return msg
             # 已建立连接但传输计算任务失败，需要重启工作节点
+            self.sock.close()
             time.sleep(1)
         if self.stop[0]:
             self.sock.close()
@@ -88,3 +89,4 @@ class Handler:
     # 终止
     def close(self):
         self.sock.close()
+        self.sock = None

@@ -2,7 +2,9 @@
 import copy
 import socketserver
 import threading
+
 import numpy as np
+
 from utils import send, receive, UUID, verbose
 
 
@@ -50,7 +52,12 @@ class Handler(socketserver.BaseRequestHandler):
                     return
                 Handler.close()
             elif Handler.slaveRec[self.key] == 'poll':
+                # 当工作节点发送完成后进入工作节点自身的下一轮循环，但主节点仍处于poll状态，这时需要处理冲突，
+                # 即主节点需要向等待连接的工作节点发送拒绝信号
+                self.reject()
                 Handler.close()
+            else:  # reject
+                self.reject()
         else:  # 客户端首次连接或之前验证失败需要重新取得许可（applicant）
             if not self.register():
                 return
@@ -73,20 +80,29 @@ class Handler(socketserver.BaseRequestHandler):
             self.key = msg
             if send(self.request, "pass"):
                 return 'member'
-        else:
+        elif msg == 'blank':
             return 'applicant'
+        else:  # 节点发送的是未知的key（可能之前的循环中持有并使用过）
+            if self.register(msg):  # 需要将之前的key值复用
+                return 'member'
         return None
 
     # 注册函数先发送key:xxx给客户端，并期望收到accept消息，注册函数将返回成功或失败两种状态
-    def register(self):
-        key = UUID(Handler.slaveRec)
-        if not send(self.request, 'key:' + key):
-            return False
-        msg = receive(self.request)
-        if msg == 'accept':
-            self.key = key
-            Handler.slaveRec[key] = 'register'
-            return True
+    def register(self, key=None):
+        if not key:
+            key = UUID(Handler.slaveRec)
+            if not send(self.request, 'key:' + key):
+                return False
+            msg = receive(self.request)
+            if msg == 'accept':
+                self.key = key
+                Handler.slaveRec[key] = 'register'
+                return True
+        else:
+            if send(self.request, 'pass'):
+                self.key = key
+                Handler.slaveRec[self.key] = 'register'
+                return True
         return False
 
     # 将工作节点key与数据绑定，若绑定列表已满则向客户端发送reject，并在工作节点状态记录器中添加拒绝
@@ -134,6 +150,12 @@ class Handler(socketserver.BaseRequestHandler):
                 print('data have been received from: %s' % str(self.key))
             Handler.semOutput.release()
             return True
+
+    def reject(self):
+        if send(self.request, 'reject'):
+            Handler.slaveRec[self.key] = 'reject'
+            return True
+        return False
 
     # 当所有线程执行完毕时，关闭服务（尝试关闭socket server），增加reject情况
     @staticmethod

@@ -33,22 +33,21 @@ class Work:
     def run(self):
         HOST = "127.0.0.1"
         PORT = 12315
+        handle = Handler(HOST, PORT, self.stop)  # 传入引用变量
 
         while not self.stop[0]:
-            handle = Handler(HOST, PORT, self.stop)
             # 接收数据，若接收数据为None表明未分配计算任务，则直接退出
             data = handle.poll()
             if not data:
-                print('shutdown please')
+                print(handle.key + ' is rejected.')
                 time.sleep(1)
             else:
-                print('obtain key = ' + handle.key)
+                print(handle.key + ' is obtained.')
                 # 计算任务
                 result = (handle.key,) + multiply(data)
                 # 发送数据
                 handle.push(result)
-                # 终止并等待下一次任务
-                handle.close()
+            handle.close()
 
 
 if __name__ == "__main__":
