@@ -3,6 +3,7 @@
     <words>
       <w>bufsize</w>
       <w>dtype</w>
+      <w>vect</w>
     </words>
   </dictionary>
 </component>

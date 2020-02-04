@@ -5,3 +5,6 @@ statistics
 .idea/*
 __pycache__
 __pycache__/*
+Handler.pyc
+.idea/dictionaries/Think.xml
+__pycache__/Handler.cpython-37.pyc

@@ -7,18 +7,22 @@ from utils import send, receive
 
 # 工作节点函数
 class Handler:
-    def __init__(self, host, port):
+    def __init__(self, host, port, signal):
         self.key = None
         self.addr = (host, port)
         self.sock = None
+        self.stop = signal
 
     def connect(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        while sock.connect_ex(self.addr):
+        while (not self.stop[0]) and sock.connect_ex(self.addr):
             time.sleep(1)
             sock.close()
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print('connecting to '+str(self.addr)+' ...')
+            print('connecting to ' + str(self.addr) + ' ...')
+        if self.stop[0]:
+            sock.close()
+            exit()
         return sock
 
     # 工作节点在进行认证过程中若有必要则进行注册，因此在主方法中无需调用register
@@ -44,7 +48,7 @@ class Handler:
 
     # 工作节点向主节点获取计算任务，若未能分配则返回None
     def poll(self):
-        while True:
+        while not self.stop[0]:
             self.sock = self.connect()
             if not self.verify():
                 self.sock.close()
@@ -60,10 +64,13 @@ class Handler:
                 return msg
             # 已建立连接但传输计算任务失败，需要重启工作节点
             time.sleep(1)
+        if self.stop[0]:
+            self.sock.close()
+            exit()
 
     # 工作节点向主节点发送计算结果，主节点必记录工作节点在绑定列表中
     def push(self, data):
-        while True:
+        while not self.stop[0]:
             self.sock = self.connect()
             if not self.verify():
                 self.sock.close()
@@ -74,6 +81,9 @@ class Handler:
                 self.sock.close()
                 return
             time.sleep(1)
+        if self.stop[0]:
+            self.sock.close()
+            exit()
 
     # 终止
     def close(self):

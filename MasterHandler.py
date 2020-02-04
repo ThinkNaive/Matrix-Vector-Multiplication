@@ -2,9 +2,7 @@
 import copy
 import socketserver
 import threading
-
 import numpy as np
-
 from utils import send, receive, UUID, verbose
 
 
@@ -161,7 +159,7 @@ class Handler(socketserver.BaseRequestHandler):
     def reset():
         Handler.server = None
         Handler.slaveRec = {}
-        taskBinds = {}
-        seqBinds = {}
+        Handler.taskBinds = {}
+        Handler.seqBinds = {}
         Handler.inputList = []
         Handler.outputList = {}

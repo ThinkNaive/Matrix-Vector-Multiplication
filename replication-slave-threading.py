@@ -25,17 +25,17 @@ def multiply(source):
 
 class Work:
     def __init__(self):
-        self.stop = False
+        self.stop = [False]
 
     def end(self):
-        self.stop = True
+        self.stop[0] = True
 
     def run(self):
         HOST = "127.0.0.1"
         PORT = 12315
 
-        while not self.stop:
-            handle = Handler(HOST, PORT)
+        while not self.stop[0]:
+            handle = Handler(HOST, PORT, self.stop)
             # 接收数据，若接收数据为None表明未分配计算任务，则直接退出
             data = handle.poll()
             if not data:
@@ -59,6 +59,10 @@ if __name__ == "__main__":
             t = threading.Thread(target=work.run)
             works.append(work)
             t.start()
+
+        while True:
+            pass
+
     except KeyboardInterrupt:
         for work in works:
             work.end()
