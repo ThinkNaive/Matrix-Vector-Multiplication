@@ -74,3 +74,7 @@ class Handler:
                 self.sock.close()
                 return
             time.sleep(1)
+
+    # 终止
+    def close(self):
+        self.sock.close()

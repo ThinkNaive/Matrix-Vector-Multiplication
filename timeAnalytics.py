@@ -1,25 +1,28 @@
 import numpy as np
 
 
-def time_analytics_rep(task_times, task_keys, num_workers, num_rep):
+def repTimeAnalytics(task_times, task_keys, num_workers, num_rep):
     start_time = float('Inf')
     worker_times = np.zeros(num_workers)
-    # Logging times
+    # 获取全局最先运算的节点时间作为启动时间
+    # 获取每个节点最晚的结束时间作为节点完成计算的时间
     for worker in task_times:
         start_time = min(start_time,
                          task_times[worker][0][0])  # Global start time is the time at which fastest worker starts
         worker_times[worker] = task_times[worker][-1][1]  # Stop time of last task at worker
-    # Identifying workers used in decoding
+    # 取得用于解码的节点
     done_list = []  # List of done workers from each group
     done_keys = {}
     stop_time = 0
+
+    # 工作节点分配任务（rep=2）组别为0,0,1,1,2,2,...
     for worker_num in range(0, num_workers, num_rep):
         worker_group = worker_times[worker_num:worker_num + num_rep]
-        fastest_worker = np.argmin(worker_group) + worker_num
+        fastest_worker = np.argmin(worker_group) + worker_num  # 最快完成某个chunk（组）的节点编号
         done_list.append(fastest_worker)
-        stop_time = max(stop_time, worker_times[fastest_worker])  # Slowest fastest worker
+        stop_time = max(stop_time, worker_times[fastest_worker])  # 记录所有组的最晚完成时间作为运行终止时间
         done_keys[fastest_worker] = task_keys[fastest_worker][:]
-    # Logging computations by each worker
+    # 记录所有完成时间早于停止时间的计算任务，求总数
     worker_comps = np.zeros(num_workers)
     for worker in task_times:
         for worker_task in task_times[worker]:
@@ -30,7 +33,7 @@ def time_analytics_rep(task_times, task_keys, num_workers, num_rep):
             else:
                 worker_times[worker] = task_stop_time  # Equivalent to cancellation after stop_time
                 break
-    worker_times -= start_time
+    worker_times -= start_time  # 转化为工作节点运行时间
     stop_time -= start_time
     return done_keys, done_list, worker_times, worker_comps, stop_time
 

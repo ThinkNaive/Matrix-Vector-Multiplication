@@ -9,7 +9,7 @@ from multiprocessing import Pool
 
 import numpy as np
 
-from time_analytics_local import time_analytics_rep
+from timeAnalytics import repTimeAnalytics
 
 
 # In[2]:
@@ -74,9 +74,9 @@ if __name__ == '__main__':
     # In[5]:
 
     num_workers = 10
-    num_rep = 1
-    num_rows = 10000
-    num_cols = 10000
+    num_rep = 2
+    num_rows = 1000
+    num_cols = 1000
     A = np.random.randint(256, size=(num_rows, num_cols))
     A_enc, repmat = rep_encoder(A, num_rep, num_workers)
 
@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
     # True Result
     np.random.seed(0)
-    x = np.random.randint(256, size=(10000, 1))
+    x = np.random.randint(256, size=(num_cols, 1))
     res = np.ravel(np.dot(A, x))
 
     # In[7]:
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             task_times[worker_num] = results[worker_num][1]
             task_keys[worker_num] = results[worker_num][2]
             task_values[worker_num] = results[worker_num][3]
-        done_keys, done_list, worker_times[iter, :], worker_comps[iter, :], stop_time[iter] = time_analytics_rep(
+        done_keys, done_list, worker_times[iter, :], worker_comps[iter, :], stop_time[iter] = repTimeAnalytics(
             task_times,
             task_keys,
             num_workers,

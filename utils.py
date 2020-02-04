@@ -57,6 +57,9 @@ def UUID(table: dict):
     return key
 
 
+# 日志语句输出开关
+verbose = False  # type:bool
+
 # class Tree(object):
 #     def __init__(self, data):
 #         self.type = None  # 自身类型

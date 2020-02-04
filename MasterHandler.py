@@ -1,33 +1,34 @@
 # coding=utf-8
+import copy
 import socketserver
 import threading
 
 import numpy as np
 
-from utils import send, receive, UUID
+from utils import send, receive, UUID, verbose
 
 
 # 主节点函数
 class Handler(socketserver.BaseRequestHandler):
     # 此处为静态变量
     server = None  # 服务句柄，用于控制服务端开关流程
-    bindings = []  # 工作节点-计算任务绑定列表
     slaveRec = {}  # 工作节点状态记录器，状态有：1.不存在键值 2.register 3.bind 4.push 5.poll 6.reject
+    taskBinds = {}  # 记录节点key绑定的任务
+    seqBinds = {}  # 记录key绑定的任务顺序，与inputList相同，保证输入输出的一致性
     inputList = []  # 总计算任务
     semInput = threading.Semaphore(1)  # 用于输入值冲突的信号量
-    outputList = []  # 工作节点的输出值列表
+    outputList = {}  # 工作节点的输出值列表
     semOutput = threading.Semaphore(1)  # 用于输入值冲突的信号量
 
     def __init__(self, request, client_address, server):
         socketserver.BaseRequestHandler.__init__(self, request, client_address, server)
         # 此处为成员变量
-        self.binding = None  # 工作节点-计算任务绑定
-        self.input = None  # 单片计算任务
         self.key = None  # 工作节点的唯一标志
 
     def handle(self):
         # 必须考虑断线重连情况
         # 下面的判断将poll注释掉，这是因为在push后客户端主动与服务端解除握手，等计算完成后再尝试连接
+        self.key = None
         status = self.verify()
         if not status:  # 验证失败
             return
@@ -81,7 +82,7 @@ class Handler(socketserver.BaseRequestHandler):
     # 注册函数先发送key:xxx给客户端，并期望收到accept消息，注册函数将返回成功或失败两种状态
     def register(self):
         key = UUID(Handler.slaveRec)
-        if not send(self.request, 'key:'+key):
+        if not send(self.request, 'key:' + key):
             return False
         msg = receive(self.request)
         if msg == 'accept':
@@ -92,14 +93,15 @@ class Handler(socketserver.BaseRequestHandler):
 
     # 将工作节点key与数据绑定，若绑定列表已满则向客户端发送reject，并在工作节点状态记录器中添加拒绝
     def bind(self):
-        print('new connection coming: %s' % str(self.key))
+        if verbose:
+            print('new connection coming: %s' % str(self.key))
         Handler.semInput.acquire()
         if len(Handler.inputList):
-            self.input = Handler.inputList.pop()
-            self.binding = (self.key, self.input)
-            Handler.bindings.append(self.binding)
+            Handler.taskBinds[self.key] = Handler.inputList.pop()
+            Handler.seqBinds[self.key] = len(Handler.inputList)
             Handler.slaveRec[self.key] = 'bind'
-            print('new connection are bound: %s' % str(self.key))
+            if verbose:
+                print('new connection are bound: %s' % str(self.key))
             Handler.semInput.release()
             return True
         else:
@@ -112,23 +114,26 @@ class Handler(socketserver.BaseRequestHandler):
     def push(self):
         while len(Handler.inputList):  # 等待：当所有计算任务分配完毕，则所有线程开始运行
             pass
-        if not send(self.request, self.input):
+        if not send(self.request, Handler.taskBinds[self.key]):
             return False
         Handler.slaveRec[self.key] = 'push'
-        print('data have sent to: %s' % str(self.key))
+        if verbose:
+            print('data have sent to: %s' % str(self.key))
         return True
 
     # 等待slave返回计算结果
     def poll(self):
         data = receive(self.request)
         if not data:
-            print("receiving data fail: %s" % str(self.key))
+            if verbose:
+                print("receiving data fail: %s" % str(self.key))
             return False
         else:
             Handler.semOutput.acquire()
-            Handler.outputList.append(data)
+            Handler.outputList[Handler.seqBinds[self.key]] = data
             Handler.slaveRec[self.key] = 'poll'
-            print('data have been received from: %s' % str(self.key))
+            if verbose:
+                print('data have been received from: %s' % str(self.key))
             Handler.semOutput.release()
             return True
 
@@ -142,9 +147,21 @@ class Handler(socketserver.BaseRequestHandler):
     # 在主节点程序中调用以执行分布式任务
     @staticmethod
     def run(host, port, inputList):
+        Handler.reset()
         ADDR = (host, port)
         Handler.server = socketserver.ThreadingTCPServer(ADDR, Handler)
-        Handler.inputList = inputList
+        Handler.inputList = copy.deepcopy(inputList)
         Handler.server.allow_reuse_address = True
         Handler.server.serve_forever()
         Handler.server.server_close()
+        return Handler.outputList
+
+    # 重置静态变量
+    @staticmethod
+    def reset():
+        Handler.server = None
+        Handler.slaveRec = {}
+        taskBinds = {}
+        seqBinds = {}
+        Handler.inputList = []
+        Handler.outputList = {}
