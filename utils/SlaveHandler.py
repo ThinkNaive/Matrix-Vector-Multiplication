@@ -2,7 +2,7 @@
 import socket
 import time
 
-from utils import send, receive
+from utils.connection import send, receive
 
 
 # 工作节点函数

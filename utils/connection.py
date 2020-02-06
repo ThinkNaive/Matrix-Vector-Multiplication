@@ -4,6 +4,8 @@ import uuid
 
 # 日志语句输出开关
 verbose = False  # type:bool
+HOST = "127.0.0.1"
+PORT = 12315
 
 
 # 编码函数，将输入的计算任务编码为字节并发送

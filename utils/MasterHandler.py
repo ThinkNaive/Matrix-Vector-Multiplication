@@ -5,7 +5,7 @@ import threading
 
 import numpy as np
 
-from utils import send, receive, UUID, verbose
+from utils.connection import send, receive, UUID, verbose
 
 
 # 主节点函数
