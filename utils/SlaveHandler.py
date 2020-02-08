@@ -2,7 +2,7 @@
 import socket
 import time
 
-from utils.connection import send, receive
+from utils.connection import send, receive, DELAY
 
 
 # 工作节点函数
@@ -16,7 +16,7 @@ class Handler:
     def connect(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while (not self.stop[0]) and sock.connect_ex(self.addr):
-            time.sleep(1)
+            time.sleep(DELAY)
             sock.close()
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print('connecting to ' + str(self.addr) + ' ...')
@@ -52,7 +52,7 @@ class Handler:
             self.sock = self.connect()
             if not self.verify():
                 self.sock.close()
-                time.sleep(1)
+                time.sleep(DELAY)
                 continue
             # 开始任务传输通信
             msg = receive(self.sock)
@@ -64,7 +64,7 @@ class Handler:
                 return msg
             # 已建立连接但传输计算任务失败，需要重启工作节点
             self.sock.close()
-            time.sleep(1)
+            time.sleep(DELAY)
         if self.stop[0]:
             self.sock.close()
             exit()
@@ -75,13 +75,13 @@ class Handler:
             self.sock = self.connect()
             if not self.verify():
                 self.sock.close()
-                time.sleep(1)
+                time.sleep(DELAY)
                 continue
             # 开始任务传输通信
             if send(self.sock, data):
                 self.sock.close()
                 return
-            time.sleep(1)
+            time.sleep(DELAY)
         if self.stop[0]:
             self.sock.close()
             exit()

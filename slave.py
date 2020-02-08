@@ -5,7 +5,7 @@ import time
 import numpy as np
 
 from utils.SlaveHandler import Handler
-from utils.connection import HOST, PORT
+from utils.connection import HOST, PORT, DELAY
 
 
 def multiply(source):
@@ -39,7 +39,7 @@ class Work:
             data = handle.poll()
             if not data:
                 print(handle.key + ' is rejected.')
-                time.sleep(1)
+                time.sleep(DELAY)
             else:
                 print(handle.key + ' is obtained.')
                 # 计算任务
