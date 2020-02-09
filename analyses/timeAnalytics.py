@@ -29,7 +29,7 @@ def repAnalytics(taskTimes, slaveNum, repNum):
                 # 统计在stopTime前的计算数
                 slaveComps[slave] += 1
             else:
-                slaveTimes[slave] = taskStopTime  # Equivalent to cancellation after stop_time
+                slaveTimes[slave] = taskStopTime
                 break
     slaveTimes -= startTime  # 转化为工作节点运行时间
     stopTime -= startTime  # 转化为工作节点运行时间
@@ -67,7 +67,7 @@ def ltAnalytics(taskTimes, taskIndexes, slaveNum, decThresh):
     startTime = float('Inf')
     slaveTimes = np.zeros(slaveNum)
     compTimesList = []
-    # Logging times
+
     for slave in taskTimes:
         startTime = min(startTime, taskTimes[slave][0][0])
         slaveTimes[slave] = taskTimes[slave][-1][1]
