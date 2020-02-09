@@ -41,7 +41,7 @@ class Handler(socketserver.BaseRequestHandler):
         if not status:  # 验证失败
             return
         elif status == 'member':  # 客户端通过验证，已分配key
-            if Handler.slaveRec[self.key] == 'register':
+            if Handler.slaveRec[self.key] == 'verify':
                 if not self.bind():
                     return
                 if not self.push():
@@ -62,16 +62,6 @@ class Handler(socketserver.BaseRequestHandler):
                 Handler.close()
             else:  # reject
                 self.reject()
-        else:  # 客户端首次连接或之前验证失败需要重新取得许可（applicant）
-            if not self.register():
-                return
-            if not self.bind():
-                return
-            if not self.push():
-                return
-            # if not self.poll():
-            #     return
-            Handler.close()
 
     # 验证函数发起验证请求，将返回三种状态，member：客户端已在绑定列表，或applicant：新客户端等待分配，或None：连接错误
     def verify(self):
@@ -84,28 +74,27 @@ class Handler(socketserver.BaseRequestHandler):
             self.key = msg
             if send(self.request, "pass"):
                 return 'member'
-        elif msg == 'blank':
-            return 'applicant'
-        else:  # 节点发送的是未知的key（可能之前的循环中持有并使用过）
-            if self.register(msg):  # 需要将之前的key值复用
-                return 'member'
+        elif self.register(msg):
+            # 节点发送的是未知的key（可能之前的循环中持有并使用过）或为新
+            # 需要将之前的key值复用，若为blank则注册新的key
+            return 'member'
         return None
 
     # 注册函数先发送key:xxx给客户端，并期望收到accept消息，注册函数将返回成功或失败两种状态
-    def register(self, key=None):
-        if not key:
+    def register(self, key):
+        if key == 'blank':
             key = UUID(Handler.slaveRec)
             if not send(self.request, 'key:' + key):
                 return False
             msg = receive(self.request)
             if msg == 'accept':
                 self.key = key
-                Handler.slaveRec[key] = 'register'
+                Handler.slaveRec[key] = 'verify'
                 return True
         else:
             if send(self.request, 'pass'):
                 self.key = key
-                Handler.slaveRec[self.key] = 'register'
+                Handler.slaveRec[self.key] = 'verify'
                 return True
         return False
 

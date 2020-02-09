@@ -1,61 +1,27 @@
-# coding=utf-8
+# coding: utf-8
+
+import copy
+import os
+import time
+from multiprocessing import Pool
+
 import numpy as np
 
 
-def repEncoder(mat, repNum, slaveNum):
-    rows, cols = mat.shape
-    encRows = int(rows * repNum)
-    subRows = int(rows * repNum / slaveNum)
-    chunkNum = int(slaveNum / repNum)  # 每个工作节点工作重叠，因此chunks记录了最小工作节点数
-    encMap = (slaveNum, chunkNum)  # 记录工作节点数与最小需求节点数
-    encMat = np.zeros((encRows, cols), dtype=np.int)
-    for i in range(slaveNum):  # 为工作节点指派了存在相互重叠的任务
-        j = int(i / repNum)
-        encMat[i * subRows:(i + 1) * subRows, :] = mat[j * subRows:(j + 1) * subRows, :]
-    return encMat, encMap
-
-
-def repDecoder(encRes, repMat, doneList):
-    slaveNum = repMat[0]
-    repNum = int(repMat[0] / repMat[1])
-    decRes = np.zeros(encRes.shape, dtype=np.int)
-    rows = encRes.shape[0]
-    subRows = int(rows * repNum / slaveNum)
-    encIndex = 0
-    for chunk in doneList:
-        group = chunk // repNum  # 找到一个chunk对应的组号
-        decIndex = group * subRows
-        decRes[decIndex:decIndex + subRows] = encRes[encIndex:encIndex + subRows]
-        encIndex += subRows
-    return decRes
-
-
-def mdsEncoder(mat, k, p):
-    rows, cols = mat.shape
-    encRows = int(p * rows / k)
-    subRows = int(rows / k)
-    encMap = np.random.normal(size=(p, k))  # (p,k) MDS编码，用于编码以及后面的逆矩阵方式解码
-    encMat = np.zeros((encRows, cols), dtype=np.float32)
-    for i in range(p):  # p
-        for j in range(k):  # k
-            # 按k个循环，放在新的A_enc上，权值为服从正态分布的随机数
-            encMat[i * subRows:(i + 1) * subRows, :] += encMap[i][j] * mat[j * subRows:(j + 1) * subRows, :]
-    return encMat, encMap
-
-
-def mdsDecoder(encRes, mdsMat, doneList):
-    # doneList是前面k个最先完成任务的工作节点
-    p, k = mdsMat.shape
-    matInv = np.linalg.inv(mdsMat[doneList, :])
-    decRes = np.zeros(encRes.shape)
-    rows = encRes.shape[0]
-    subRows = int(rows / k)
-    for i in range(k):
-        decpos = i * subRows
-        for j in range(k):
-            startIndex = j * subRows
-            decRes[decpos:decpos + subRows] += matInv[i, j] * encRes[startIndex:startIndex + subRows]
-    return decRes
+def multiply(source):
+    slaveRows = source[0]
+    slaveMat = source[1]
+    vect = source[2]
+    slaveTimes = []
+    slaveValues = []
+    slaveIndexes = []
+    rowNumber = slaveMat.shape[0]
+    for index in range(rowNumber):
+        startTime = time.process_time()
+        slaveValues.append(np.dot(slaveMat[index], vect))
+        slaveIndexes.append(slaveRows[index])
+        slaveTimes.append((startTime, time.process_time()))
+    return os.getpid(), slaveTimes, slaveIndexes, slaveValues
 
 
 def RS(m, c, delta):
@@ -163,3 +129,85 @@ def ltDecoder(encRes, encMap, finishList, slaveNum, row):
             doneList.append(finishList[i][0])
     print(', threshold=%s' % findNum, end='')
     return decRes, doneList, slaveTimes, slaveComps, stopTime
+
+
+def ltAnalytics(taskTimes, taskIndexes):
+    startTime = float('Inf')
+    for slave in taskTimes:
+        startTime = min(startTime, taskTimes[slave][0][0])
+    # 将所有任务按（节点，索引，完成时间）排序（排序目标为完成时间升序）
+    # 完成时间为从节点开始计算至完成本行计算的时间
+    finishList = []
+    for slave in taskTimes:
+        finishList.extend([(slave, taskIndexes[slave][index], taskTimes[slave][index][1] - taskTimes[slave][0][0])
+                           for index in range(len(taskIndexes[slave]))])  # 每行计算的完成时间
+    finishList = sorted(finishList, key=lambda x: x[2])
+    return finishList
+
+
+if __name__ == '__main__':
+    np.random.seed(0)
+    slaveNum = 10
+    row = 10000
+    col = 1000
+    c = 0.03
+    delta = 0.5
+    alpha = 2.0
+    iteration = 10
+
+    A = np.random.randint(256, size=(row, col))
+    Ae, encMapAll = ltEncoder(A, c, delta, alpha)
+
+    x = np.random.randint(256, size=(col, 1))
+    trueRes = np.ravel(np.dot(A, x))
+
+    subMatList = []
+    subMatSize = int(alpha * row / slaveNum)
+    for slave in range(slaveNum):
+        startIndex = slave * subMatSize
+        endIndex = startIndex + subMatSize
+        subMatList.append((np.arange(startIndex, endIndex, 1), Ae[startIndex:endIndex, :], x))
+
+    pool = Pool(slaveNum, maxtasksperchild=1)
+
+    # In[11]:
+
+    slaveKeys = [[] for _ in range(iteration)]
+    slaveTimes = np.zeros((iteration, slaveNum))  # 每个工作节点的计算完成时间
+    slaveComps = np.zeros((iteration, slaveNum))  # 每个工作节点的计算完成量
+    stopTime = np.zeros(iteration)  # 每次迭代完成时间
+    for i in range(iteration):
+        print('iteration %s' % i, end='')
+        results = pool.map(multiply, subMatList)
+
+        taskKeys = {}
+        taskTimes = {}
+        taskIndexes = {}
+        taskValues = {}
+        encRes = np.zeros(int(alpha * row))
+        encMap = copy.deepcopy(encMapAll)
+
+        for slave in range(slaveNum):
+            taskKeys[slave] = results[slave][0]
+            taskTimes[slave] = results[slave][1]
+            taskIndexes[slave] = results[slave][2]
+            taskValues[slave] = results[slave][3]
+            encRes[taskIndexes[slave]] = np.asarray(taskValues[slave])[:, 0]
+        finishList = ltAnalytics(taskTimes, taskIndexes)
+
+        # 根据finishList进行解码
+        decRes, doneList, slaveTimes[i, :], slaveComps[i, :], stopTime[i] = ltDecoder(
+            encRes,
+            encMap,
+            finishList,
+            slaveNum,
+            row)
+
+        for slave in doneList:
+            slaveKeys[i].append(taskKeys[slave])
+
+        err = np.linalg.norm(decRes - trueRes) / np.linalg.norm(trueRes)
+        print(', error=%s%%' % (err * 100))
+
+    # print some slaveKeys, slaveTimes, slaveComps, stopTime
+    print('Average Latency = ' + str(np.mean(stopTime)))

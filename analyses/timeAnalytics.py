@@ -29,7 +29,7 @@ def repAnalytics(taskTimes, slaveNum, repNum):
                 # 统计在stopTime前的计算数
                 slaveComps[slave] += 1
             else:
-                slaveTimes[slave] = taskStopTime  # Equivalent to cancellation after stop_time
+                slaveTimes[slave] = taskStopTime
                 break
     slaveTimes -= startTime  # 转化为工作节点运行时间
     stopTime -= startTime  # 转化为工作节点运行时间
@@ -63,29 +63,15 @@ def mdsAnalytics(taskTimes, p, k):
     return doneList, slaveTimes, slaveComps, stopTime
 
 
-def ltAnalytics(taskTimes, taskIndexes, slaveNum, decThresh):
+def ltAnalytics(taskTimes, taskIndexes):
     startTime = float('Inf')
-    slaveTimes = np.zeros(slaveNum)
-    compTimesList = []
-    # Logging times
     for slave in taskTimes:
         startTime = min(startTime, taskTimes[slave][0][0])
-        slaveTimes[slave] = taskTimes[slave][-1][1]
-        compTimesList.extend([taskTime[1] for taskTime in taskTimes[slave]])  # 每行计算的完成时间
-    # 根据decThresh找到概率确保的完成时间
-    stopTime = sorted(compTimesList)[decThresh - 1]
-    # 根据stopTime找出所有可用于解码的编码行数
-    doneList = []
-    slaveComps = np.zeros(slaveNum)
+    # 将所有任务按（节点，索引，完成时间）排序（排序目标为完成时间升序）
+    # 完成时间为从节点开始计算至完成本行计算的时间
+    finishList = []
     for slave in taskTimes:
-        for (taskTime, taskIndex) in zip(taskTimes[slave], taskIndexes[slave]):
-            taskStopTime = taskTime[1]
-            if taskStopTime <= stopTime:
-                slaveComps[slave] += 1
-                doneList.append(taskIndex)
-            else:
-                slaveTimes[slave] = taskStopTime
-                break
-    slaveTimes -= startTime
-    stopTime -= startTime
-    return doneList, slaveTimes, slaveComps, stopTime
+        finishList.extend([(slave, taskIndexes[slave][index], taskTimes[slave][index][1] - taskTimes[slave][0][0])
+                           for index in range(len(taskIndexes[slave]))])  # 每行计算的完成时间
+    finishList = sorted(finishList, key=lambda x: x[2])
+    return finishList
