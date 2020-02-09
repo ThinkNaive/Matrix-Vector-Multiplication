@@ -1,12 +1,18 @@
 import pickle
+import socket
+import threading
 import time
 import uuid
 
 # 日志语句输出开关
 verbose = False  # type:bool
+# 等待延迟
 DELAY = 1
+# 服务器地址
 HOST = "127.0.0.1"
 PORT = 12315
+# 缓冲区修改标记信号量
+semBuffer = threading.Semaphore(1)
 
 
 # 编码函数，将输入的计算任务编码为字节并发送
@@ -23,10 +29,8 @@ def decode(data):
 # 发送值为编码后的字符串
 def send(request, data):
     try:
-        msg = encode(data)  # 将数据结构编码为bytes
-        request.sendall(msg)
-        msg = 'EOF'.encode('utf-8')
-        request.sendall(msg)
+        msg = encode(data) + 'EOF'.encode('utf-8')  # 将数据结构编码为bytes
+        trySend(request, msg)
         time.sleep(0.1)  # 解决粘包问题
         return True
     except Exception as e:
@@ -35,13 +39,25 @@ def send(request, data):
         return False
 
 
+# 判断发送缓冲区大小并发送数据
+def trySend(request, msg):
+    pt = 0
+    while pt < len(msg):
+        semBuffer.acquire()
+        bufSize = request.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF)
+        if bufSize > 0:
+            request.send(msg[pt:pt + bufSize])
+            pt += bufSize
+        semBuffer.release()
+
+
 # 主节点等待工作节点返回分片计算结果，接收完成的标志为EOF
 # 返回值为编码后的字符串
 def receive(request):
     rec = b''
     try:
         while True:
-            data = request.recv(1024)  # type:bytes
+            data = request.recv(request.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF))  # type:bytes
             if not data:
                 print('receive data error')
                 rec = None

@@ -125,7 +125,7 @@ if __name__ == "__main__":
     np.random.seed(0)
 
     row = 10000
-    col = 10000
+    col = 1000
     iteration = 10
 
     # index = 4
