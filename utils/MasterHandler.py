@@ -13,7 +13,14 @@ from utils.connection import send, receive, UUID, verbose, DELAY
 class Handler(socketserver.BaseRequestHandler):
     # 此处为静态变量
     server = None  # 服务句柄，用于控制服务端开关流程
-    slaveRec = {}  # 工作节点状态记录器，状态有：1.不存在键值 2.register 3.bind 4.push 5.poll 6.reject
+    slaveRec = {}  # 工作节点状态记录器，状态有：1.不存在键值 2.register 3.bind 4.push 5.compute 6.poll 7.reject
+    # 1.客户端首次连接或之前验证失败需要重新取得许可（applicant）
+    # 2.register 已注册状态，主节点未对工作节点分配任务
+    # 3.bind 已分配任务，未发送给工作节点
+    # 4.push 已发送任务，工作节点未收到启动命令
+    # 5.compute 工作节点已启动并计算完成，尝试连接主节点传送计算结果
+    # 6.poll 计算结果已完成传输，但仍寻求连接，应主动拒绝连接信号
+    # 7.reject 主节点暂时不需要工作节点，主动拒绝连接信号
     taskBinds = {}  # 记录节点key绑定的任务
     seqBinds = {}  # 记录key绑定的任务顺序，与inputList相同，保证输入输出的一致性
     inputList = []  # 总计算任务
@@ -39,19 +46,15 @@ class Handler(socketserver.BaseRequestHandler):
                     return
                 if not self.push():
                     return
-                # if not self.poll():
-                #     return
-                Handler.close()
             elif Handler.slaveRec[self.key] == 'bind':
                 if not self.push():
                     return
-                # if not self.poll():
-                #     return
-                Handler.close()
             elif Handler.slaveRec[self.key] == 'push':
+                if not self.compute():
+                    return
+            elif Handler.slaveRec[self.key] == 'compute':
                 if not self.poll():
                     return
-                Handler.close()
             elif Handler.slaveRec[self.key] == 'poll':
                 # 当工作节点发送完成后进入工作节点自身的下一轮循环，但主节点仍处于poll状态，这时需要处理冲突，
                 # 即主节点需要向等待连接的工作节点发送拒绝信号
@@ -128,14 +131,48 @@ class Handler(socketserver.BaseRequestHandler):
     # 为工作节点发送计算任务
     def push(self):
         while len(Handler.inputList):  # 等待：当所有计算任务分配完毕，则所有线程开始运行
-            print('.', end='')
             time.sleep(DELAY)
         if not send(self.request, Handler.taskBinds[self.key]):
             return False
         Handler.slaveRec[self.key] = 'push'
         if verbose:
             print('data have sent to: %s' % str(self.key))
+        # # 补丁，保证工作节点开始运行时刻相同
+        # flag = False
+        # if receive(self.request):
+        #     flag = True
+        # status = np.array(list(Handler.slaveRec.values()))
+        # while not (status == 'push').all():
+        #     pass
+        # send(self.request, 'accept')
+        # # 补丁结束
         return True
+
+    # 计划启动工作节点
+    def compute(self):
+        if receive(self.request) == 'Request Compute':
+            # status = np.array(list(Handler.slaveRec.values()))
+            # status = np.logical_or(
+            #     np.logical_or(status == 'push', status == 'compute'),
+            #     np.logical_or(status == 'poll', status == 'reject'))
+            # if not status.all():
+            #     send(self.request, 'negative')
+            # elif send(self.request, 'positive'):
+            #     Handler.slaveRec[self.key] = 'compute'
+            #     return True
+            status = np.array(list(Handler.slaveRec.values()))
+            status = np.logical_or(
+                np.logical_or(status == 'push', status == 'compute'),
+                np.logical_or(status == 'poll', status == 'reject'))
+            while not status.all():
+                status = np.array(list(Handler.slaveRec.values()))
+                status = np.logical_or(
+                    np.logical_or(status == 'push', status == 'compute'),
+                    np.logical_or(status == 'poll', status == 'reject'))
+            send(self.request, 'positive')
+            Handler.slaveRec[self.key] = 'compute'
+            return True
+        return False
 
     # 等待slave返回计算结果
     def poll(self):

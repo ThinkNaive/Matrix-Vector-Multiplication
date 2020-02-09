@@ -42,6 +42,8 @@ class Work:
                 time.sleep(DELAY)
             else:
                 # print(handle.key + ' is obtained.')
+                # 询问是否可计算
+                handle.compute()
                 # 计算任务
                 result = (handle.key,) + multiply(data)
                 # 发送数据
