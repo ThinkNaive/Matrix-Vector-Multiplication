@@ -2,10 +2,11 @@
 import copy
 import socketserver
 import threading
+import time
 
 import numpy as np
 
-from utils.connection import send, receive, UUID, verbose
+from utils.connection import send, receive, UUID, verbose, DELAY
 
 
 # 主节点函数
@@ -127,7 +128,8 @@ class Handler(socketserver.BaseRequestHandler):
     # 为工作节点发送计算任务
     def push(self):
         while len(Handler.inputList):  # 等待：当所有计算任务分配完毕，则所有线程开始运行
-            pass
+            print('.', end='')
+            time.sleep(DELAY)
         if not send(self.request, Handler.taskBinds[self.key]):
             return False
         Handler.slaveRec[self.key] = 'push'

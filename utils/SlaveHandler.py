@@ -54,13 +54,16 @@ class Handler:
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
+            print(str(self.key) + ' poll verified.')
             # 开始任务传输通信
             msg = receive(self.sock)
             if msg == 'reject':
                 self.sock.close()
+                print(self.key + ' poll rejected.')
                 return None
             if msg:
                 self.sock.close()
+                print(self.key + ' got data.')
                 return msg
             # 已建立连接但传输计算任务失败，需要重启工作节点
             self.sock.close()
@@ -77,9 +80,11 @@ class Handler:
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
+            print(str(self.key) + ' push verified.')
             # 开始任务传输通信
             if send(self.sock, data):
                 self.sock.close()
+                print(self.key + ' sent data.')
                 return
             time.sleep(DELAY)
         if self.stop[0]:

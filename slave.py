@@ -38,10 +38,10 @@ class Work:
             # 接收数据，若接收数据为None表明未分配计算任务，则直接退出
             data = handle.poll()
             if not data:
-                print(handle.key + ' is rejected.')
+                # print(handle.key + ' is rejected.')
                 time.sleep(DELAY)
             else:
-                print(handle.key + ' is obtained.')
+                # print(handle.key + ' is obtained.')
                 # 计算任务
                 result = (handle.key,) + multiply(data)
                 # 发送数据

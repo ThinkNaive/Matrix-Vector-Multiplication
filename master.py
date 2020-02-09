@@ -26,7 +26,7 @@ def run(A, x, iteration, params):
         p = params[1]
         k = params[2]
         Ae, castMat = mdsEncoder(A, k, p)
-    elif strategy == 'lt':
+    else:  # 'lt'
         c = params[2]
         delta = params[3]
         alpha = params[4]
@@ -43,10 +43,9 @@ def run(A, x, iteration, params):
     elif strategy == 'mds':
         k = params[2]
         subMatSize = int(row / k)
-    elif strategy == 'lt':
+    else:  # 'lt'
         alpha = params[4]
         subMatSize = int(alpha * row / slaveNum)
-    print('subMatSize = ', subMatSize)
 
     for slave in range(slaveNum):
         startIndex = slave * subMatSize
@@ -91,7 +90,7 @@ def run(A, x, iteration, params):
                 taskTimes,
                 p,
                 k)
-        elif strategy == 'lt':
+        else:  # 'lt'
             thresh = params[5]
             doneList, slaveTimes[i, :], slaveComps[i, :], stopTime[i] = ltAnalytics(
                 taskTimes,
@@ -126,14 +125,17 @@ if __name__ == "__main__":
     np.random.seed(0)
 
     row = 10000
-    col = 1000
+    col = 10000
     iteration = 10
 
-    # index = 3
-    # params = ('lt', 10, 0.03, 0.5, 2.0, 11057)
+    # index = 4
+    # params = ('lt', 10, 0.03, 0.5, 2.0, 1250)
 
-    index = 2
-    params = ('rep', 10, 2)
+    index = 3
+    params = ('lt', 10, 0.03, 0.5, 2.0, 11057)
+
+    # index = 2
+    # params = ('rep', 10, 2)
 
     # index = 1
     # params = ('mds', 10, 5)

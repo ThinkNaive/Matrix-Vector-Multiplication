@@ -4,7 +4,7 @@ import uuid
 
 # 日志语句输出开关
 verbose = False  # type:bool
-DELAY = 3
+DELAY = 1
 HOST = "127.0.0.1"
 PORT = 12315
 
