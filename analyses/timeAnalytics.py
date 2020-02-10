@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# 副本策略的时间和计算性能分析
 def repAnalytics(taskTimes, slaveNum, repNum):
     startTime = float('Inf')
     slaveTimes = np.zeros(slaveNum)
@@ -36,6 +37,7 @@ def repAnalytics(taskTimes, slaveNum, repNum):
     return doneList, slaveTimes, slaveComps, stopTime
 
 
+# MDS策略的时间和计算性能分析
 def mdsAnalytics(taskTimes, p, k):
     startTime = float('Inf')
     slaveTimes = np.zeros(p)
@@ -63,6 +65,7 @@ def mdsAnalytics(taskTimes, p, k):
     return doneList, slaveTimes, slaveComps, stopTime
 
 
+# LT策略的时间排序算法，分析需要与解码同时进行
 def ltAnalytics(taskTimes, taskIndexes):
     startTime = float('Inf')
     for slave in taskTimes:

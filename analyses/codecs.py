@@ -138,7 +138,7 @@ def ltDecoder(encRes, encMap, finishList, slaveNum, row):
             srcIndex = encMap[encIndex][-1]  # 这里encMap[encIndex]需要清空，放在下面一起处理
             decRes[srcIndex] = encRes[encIndex]  # 原始行的最终结果
             for index in srcMap[srcIndex]:  # 对于原始映射到的各个编码行，需要将此原始行的最终解码结果减去，并减去相应的索引
-                if encMap[index].__contains__(srcIndex):
+                if encMap[index].__contains__(srcIndex):  # 对于新加入的编码行，可能是冗余的，需要判断是否已处理srcIndex
                     encRes[index] -= decRes[srcIndex]
                     encMap[index].remove(srcIndex)
                 if len(encMap[index]) == 1:  # 可解码行

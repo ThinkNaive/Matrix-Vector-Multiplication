@@ -6,11 +6,12 @@ import uuid
 
 # 日志语句输出开关
 verbose = False  # type:bool
-# 等待延迟
+# 失败等待延迟
 DELAY = 1
 # 服务器地址
 HOST = "127.0.0.1"
 PORT = 12315
+
 # 缓冲区修改标记信号量
 semBuffer = threading.Semaphore(1)
 
@@ -141,10 +142,3 @@ def UUID(table: dict):
 #     @staticmethod
 #     def encode(node):
 #         pass
-
-
-if __name__ == '__main__':
-    pass
-    # var = ([[1], [2]], np.array([[1, 2], [3, 4]]), np.array([[0.1, 0.2], [0.3, 0.4]]), ([1, 2], [3]), np.zeros(()))
-    # tree = Tree(var)
-    # Tree.print(tree, 0)
