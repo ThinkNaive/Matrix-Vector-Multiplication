@@ -2,7 +2,7 @@
 import socket
 import time
 
-from utils.connection import send, receive, DELAY
+from utils.connection import send, receive, DELAY, DataClient
 
 
 # 工作节点函数
@@ -16,8 +16,8 @@ class Handler:
     def connect(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while (not self.stop[0]) and sock.connect_ex(self.addr):
-            time.sleep(DELAY)
             sock.close()
+            time.sleep(DELAY)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print('connecting to ' + str(self.addr) + ' ...')
         if self.stop[0]:
@@ -61,16 +61,20 @@ class Handler:
                 self.sock.close()
                 print(self.key + ' poll rejected.')
                 return None
-            if msg:
-                print(self.key + ' got data.')
+            if msg == 'push':
+                dc = DataClient(self.stop)
+                msg = dc.pollData(self.sock)
+                # msg = receive(self.sock)
+                if msg:
+                    print(self.key + ' got data.')
+                    self.sock.close()
+                    return msg
                 # # 补丁，保证工作节点开始运行时刻相同
                 # if send(self.sock, 'accept'):
                 #     echo = receive(self.sock)
                 #     print(' %s' % echo, end='')
                 # print()
                 # # 补丁结束
-                self.sock.close()
-                return msg
             # 已建立连接但传输计算任务失败，需要重启工作节点
             self.sock.close()
             time.sleep(DELAY)
@@ -90,14 +94,12 @@ class Handler:
             # 开始任务传输通信
             if send(self.sock, 'Request Compute'):
                 msg = receive(self.sock)
-                if msg != 'positive':
+                if msg == 'positive':
                     self.sock.close()
-                    print(self.key + ' compute rejected.')
-                    time.sleep(DELAY)
-                    continue
-                self.sock.close()
-                return True
-
+                    return True
+            print(self.key + ' compute rejected.')
+            self.sock.close()
+            time.sleep(DELAY)
         self.sock.close()
         exit()
 

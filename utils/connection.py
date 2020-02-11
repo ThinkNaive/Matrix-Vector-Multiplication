@@ -1,4 +1,5 @@
 import pickle
+import random
 import socket
 import threading
 import time
@@ -81,6 +82,75 @@ def UUID(table: dict):
     while table.__contains__(key):
         key = uuid.uuid1().hex[:-24]
     return key
+
+
+# 新建随机端口sock，用于大量数据传输
+class DataServer:
+    def __init__(self):
+        self.host = HOST
+        self.port = None
+        self.server = None
+        self.sock = None
+
+    def pushData(self, request, data):
+        # 申请端口
+        while self.port is None:
+            self.port = random.randint(5001, 65535)
+            try:
+                self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                self.server.bind((self.host, self.port))
+                self.server.listen(1)
+            except socket.error:
+                self.port = None
+                self.server.close()
+                time.sleep(DELAY)
+        # 向工作节点发送端口信息
+        if send(request, self.port):
+            self.sock, _ = self.server.accept()
+            if receive(request) != 'ready':
+                time.sleep(DELAY)
+                self.server.close()
+                return False
+
+        # 向工作节点发送数据
+        if send(self.sock, data):
+            self.server.close()
+            return True
+
+        self.server.close()
+        return False
+
+
+class DataClient:
+    def __init__(self, stop):
+        self.host = HOST
+        self.port = None
+        self.sock = None
+        self.stop = stop
+
+    def pollData(self, request):
+        # 请求数据传输端口信息
+        self.port = receive(request)
+        if self.port and 5001 <= self.port <= 65535:
+            # 建立主节点通信端口
+            try:
+                time.sleep(0.1)
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.sock.connect((self.host, self.port))
+                if not send(request, 'ready'):
+                    self.sock.close()
+                    return None
+            except socket.error:
+                send(request, 'error')
+                self.sock.close()
+                return None
+
+        if self.stop[0]:
+            return None
+        # 从主节点接收数据
+        print(request, ' receiving data.')
+        return receive(self.sock)
 
 
 # class Tree(object):
