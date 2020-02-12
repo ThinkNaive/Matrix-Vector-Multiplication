@@ -51,10 +51,10 @@ def mdsDecoder(encRes, mdsMat, doneList):
     rows = encRes.shape[0]
     subRows = int(rows / k)
     for i in range(k):
-        decpos = i * subRows
+        decIndex = i * subRows
         for j in range(k):
             startIndex = j * subRows
-            decRes[decpos:decpos + subRows] += matInv[i, j] * encRes[startIndex:startIndex + subRows]
+            decRes[decIndex:decIndex + subRows] += matInv[i, j] * encRes[startIndex:startIndex + subRows]
     return decRes
 
 
@@ -156,7 +156,7 @@ def ltDecoder(encRes, encMap, finishList, slaveNum, row):
     # 每个节点完成时间以及完成的总数
     slaveTimes = np.zeros(slaveNum)
     slaveComps = np.zeros(slaveNum)
-    for i in reversed(range(len(finishList))):
+    for i in reversed(range(findNum)):
         slaveTimes[finishList[i][0]] = max(slaveTimes[finishList[i][0]], finishList[i][2])
         slaveComps[finishList[i][0]] += 1
         if not doneList.__contains__(finishList[i][0]):

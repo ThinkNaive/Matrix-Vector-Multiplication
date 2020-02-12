@@ -5,50 +5,50 @@ import time
 
 import numpy as np
 
-from analyses.codecs import repEncoder, repDecoder, mdsEncoder, mdsDecoder, ltEncoder, ltDecoder
-from analyses.timeAnalytics import repAnalytics, mdsAnalytics, ltAnalytics
-from utils.MasterHandler import Handler
+from utils.codecs import repEncoder, repDecoder, mdsEncoder, mdsDecoder, ltEncoder, ltDecoder
 from utils.connection import HOST, PORT
+from utils.masterHandler import Handler
+from utils.performanceHandler import repAnalytics, mdsAnalytics, ltAnalytics
 
 
 # 输入：工作节点数slaveNum，矩阵A，向量x，迭代次数iteration，（方法名（rep，mds，lt），参数1，参数2...）如下
-# ('rep', p, repNum)
-# ('mds', p, k)
-# ('lt', p, c, delta, alpha)
+# params = {'id': '1', 'strategy': 'rep', 'p': 10, 'repNum': 2}
+# params = {'id': '2', 'strategy': 'mds', 'p': 10, 'k': 5}
+# params = {'id': '3', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0}
 def run(A, x, iteration, params):
     # 解析params
-    strategy = params[0]
-    slaveNum = params[1]
+    strategy = params['strategy']
+    slaveNum = params['p']
 
     row, col = A.shape
-    Ae = None
-    castMap = None
+    # Ae = None
+    # castMap = None
     if strategy == 'rep':
-        repNum = params[2]
+        repNum = params['repNum']
         Ae, castMap = repEncoder(A, repNum, slaveNum)
     elif strategy == 'mds':
-        p = params[1]
-        k = params[2]
+        p = params['p']
+        k = params['k']
         Ae, castMap = mdsEncoder(A, k, p)
     else:  # 'lt'
-        c = params[2]
-        delta = params[3]
-        alpha = params[4]
+        c = params['c']
+        delta = params['delta']
+        alpha = params['alpha']
         Ae, castMap = ltEncoder(A, c, delta, alpha)
 
     # 正确值，用于对比
     trueRes = np.ravel(np.dot(A, x))
 
     subMatList = []
-    subMatSize = None
+    # subMatSize = None
     if strategy == 'rep':
-        repNum = params[2]
+        repNum = params['repNum']
         subMatSize = int(row * repNum / slaveNum)
     elif strategy == 'mds':
-        k = params[2]
+        k = params['k']
         subMatSize = int(row / k)
     else:  # 'lt'
-        alpha = params[4]
+        alpha = params['alpha']
         subMatSize = int(alpha * row / slaveNum)
 
     for slave in range(slaveNum):
@@ -68,10 +68,10 @@ def run(A, x, iteration, params):
         taskTimes = {}
         taskIndexes = {}
         taskValues = {}
-        encRes = None
+        # encRes = None
 
         if strategy == 'lt':
-            alpha = params[4]
+            alpha = params['alpha']
             encRes = np.zeros(int(alpha * row))
         else:
             encRes = np.zeros(row, dtype=np.int)
@@ -85,7 +85,7 @@ def run(A, x, iteration, params):
                 encRes[taskIndexes[slave]] = np.asarray(taskValues[slave])[:, 0]
 
         if strategy == 'rep':
-            repNum = params[2]
+            repNum = params['repNum']
             doneList, slaveTimes[i, :], slaveComps[i, :], stopTime[i] = repAnalytics(
                 taskTimes,
                 slaveNum,
@@ -97,8 +97,8 @@ def run(A, x, iteration, params):
                 startIndex += subMatSize
             decRes = repDecoder(encRes, castMap, doneList)
         elif strategy == 'mds':
-            p = params[1]
-            k = params[2]
+            p = params['p']
+            k = params['k']
             doneList, slaveTimes[i, :], slaveComps[i, :], stopTime[i] = mdsAnalytics(
                 taskTimes,
                 p,
@@ -135,24 +135,19 @@ if __name__ == "__main__":
     col = 1000
     iteration = 10
 
-    index = 3
-    params = ('lt', 10, 0.03, 0.5, 2.0)
-
-    # index = 2
-    # params = ('rep', 10, 2)
-
-    # index = 1
-    # params = ('mds', 10, 5)
+    params = {'id': '1', 'strategy': 'rep', 'p': 10, 'repNum': 2}
+    # params = {'id': '2', 'strategy': 'mds', 'p': 10, 'k': 5}
+    # params = {'id': '3', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0}
 
     A = np.random.randint(256, size=(row, col))
     x = np.random.randint(256, size=(col, 1))
 
     keys, times, comps, stops = run(A, x, iteration, params)
 
-    np.save('statistics/' + params[0] + 'Keys_' + str(index) + '.npy', keys)
-    np.save('statistics/' + params[0] + 'Times_' + str(index) + '.npy', times)
-    np.save('statistics/' + params[0] + 'Comps_' + str(index) + '.npy', comps)
-    np.save('statistics/' + params[0] + 'StopTime_' + str(index) + '.npy', stops)
+    np.save('statistics/' + params['strategy'] + 'Keys_' + params['id'] + '.npy', keys)
+    np.save('statistics/' + params['strategy'] + 'Times_' + params['id'] + '.npy', times)
+    np.save('statistics/' + params['strategy'] + 'Comps_' + params['id'] + '.npy', comps)
+    np.save('statistics/' + params['strategy'] + 'StopTime_' + params['id'] + '.npy', stops)
 
     print('Average Latency = ' + str(np.mean(stops)))
-    print('Run Time = ', time.time() - startTime)
+    print('Run Time = ', str(time.time() - startTime))

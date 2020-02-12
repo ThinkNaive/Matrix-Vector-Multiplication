@@ -4,8 +4,8 @@ import time
 
 import numpy as np
 
-from utils.SlaveHandler import Handler
 from utils.connection import HOST, PORT, DELAY
+from utils.slaveHandler import Handler
 
 
 def multiply(source):
