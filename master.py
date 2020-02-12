@@ -127,7 +127,7 @@ def run(A, x, iteration, params):
 
 
 if __name__ == "__main__":
-    startTime = time.process_time()
+    startTime = time.time()
     np.random.seed(0)
     random.seed(0)
 
@@ -155,4 +155,4 @@ if __name__ == "__main__":
     np.save('statistics/' + params[0] + 'StopTime_' + str(index) + '.npy', stops)
 
     print('Average Latency = ' + str(np.mean(stops)))
-    print('Run Time = ', time.process_time()-startTime)
+    print('Run Time = ', time.time() - startTime)

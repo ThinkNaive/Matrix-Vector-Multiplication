@@ -31,15 +31,12 @@ def decode(data):
 # 发送值为编码后的字符串
 # lock为线程同步锁，保证单个端口缓冲不抢占
 def send(request, data, lock=True):
-    try:
-        msg = encode(data) + 'EOF'.encode('utf-8')  # 将数据结构编码为bytes
-        trySend(request, msg, lock)
+    msg = encode(data) + 'EOF'.encode('utf-8')  # 将数据结构编码为bytes
+    if trySend(request, msg, lock):
         time.sleep(0.1)  # 解决粘包问题
         return True
-    except Exception as e:
-        print(e)
-        time.sleep(0.1)  # 解决粘包问题
-        return False
+    time.sleep(0.1)  # 解决粘包问题
+    return False
 
 
 # 判断发送缓冲区大小并发送数据
@@ -50,10 +47,17 @@ def trySend(request, msg, lock):
             sem.acquire()
         bufSize = request.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF)
         if bufSize > 0:
-            request.send(msg[pt:pt + bufSize])
-            pt += bufSize
+            try:
+                request.send(msg[pt:pt + bufSize])
+                pt += bufSize
+            except Exception as e:
+                print(e)
+                if lock:
+                    sem.release()
+                return False
         if lock:
             sem.release()
+    return True
 
 
 # 主节点等待工作节点返回分片计算结果，接收完成的标志为EOF
@@ -138,7 +142,7 @@ class DataClient:
         if self.port and 5001 <= self.port <= 65535:
             # 建立主节点通信端口
             try:
-                time.sleep(0.1)
+                time.sleep(DELAY)
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.connect((self.host, self.port))
                 if not send(request, 'ready'):
