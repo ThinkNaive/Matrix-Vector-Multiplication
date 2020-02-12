@@ -14,7 +14,7 @@ HOST = "127.0.0.1"
 PORT = 12315
 
 # 缓冲区修改标记信号量
-semBuffer = threading.Semaphore(1)
+sem = threading.Semaphore(1)
 
 
 # 编码函数，将输入的计算任务编码为字节并发送
@@ -29,10 +29,11 @@ def decode(data):
 
 # 主节点向工作节点发送分片矩阵数据，发送完成后最后发送EOF作为结束标志
 # 发送值为编码后的字符串
-def send(request, data):
+# lock为线程同步锁，保证单个端口缓冲不抢占
+def send(request, data, lock=True):
     try:
         msg = encode(data) + 'EOF'.encode('utf-8')  # 将数据结构编码为bytes
-        trySend(request, msg)
+        trySend(request, msg, lock)
         time.sleep(0.1)  # 解决粘包问题
         return True
     except Exception as e:
@@ -42,15 +43,17 @@ def send(request, data):
 
 
 # 判断发送缓冲区大小并发送数据
-def trySend(request, msg):
+def trySend(request, msg, lock):
     pt = 0
     while pt < len(msg):
-        semBuffer.acquire()
+        if lock:
+            sem.acquire()
         bufSize = request.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF)
         if bufSize > 0:
             request.send(msg[pt:pt + bufSize])
             pt += bufSize
-        semBuffer.release()
+        if lock:
+            sem.release()
 
 
 # 主节点等待工作节点返回分片计算结果，接收完成的标志为EOF
@@ -114,7 +117,7 @@ class DataServer:
                 return False
 
         # 向工作节点发送数据
-        if send(self.sock, data):
+        if send(self.sock, data, lock=False):
             self.server.close()
             return True
 
