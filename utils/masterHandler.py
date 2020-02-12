@@ -13,13 +13,13 @@ from utils.connection import send, receive, UUID, verbose, DELAY, DataServer
 class Handler(socketserver.BaseRequestHandler):
     # 此处为静态变量
     server = None  # 服务句柄，用于控制服务端开关流程
-    slaveRec = {}  # 工作节点状态记录器，状态有：1.不存在键值 2.register 3.bind 4.push 5.compute 6.poll 7.reject
+    slaveRec = {}  # 工作节点状态记录器，状态有：1.不存在键值 2.register 3.bind 4.push 5.compute 6.pull 7.reject
     # 1.客户端首次连接或之前验证失败需要重新取得许可（applicant）
     # 2.register 已注册状态，主节点未对工作节点分配任务
     # 3.bind 已分配任务，未发送给工作节点
     # 4.push 已发送任务，工作节点未收到启动命令
     # 5.compute 工作节点已启动并计算完成，尝试连接主节点传送计算结果
-    # 6.poll 计算结果已完成传输，但仍寻求连接，应主动拒绝连接信号
+    # 6.pull 计算结果已完成传输，但仍寻求连接，应主动拒绝连接信号
     # 7.reject 主节点暂时不需要工作节点，主动拒绝连接信号
     taskBinds = {}  # 记录节点key绑定的任务
     seqBinds = {}  # 记录key绑定的任务顺序，与inputList相同，保证输入输出的一致性
@@ -53,9 +53,11 @@ class Handler(socketserver.BaseRequestHandler):
                 if not self.compute():
                     return
             elif Handler.slaveRec[self.key] == 'compute':
-                if not self.poll():
+                if not self.pull():
                     return
-            elif Handler.slaveRec[self.key] == 'poll':
+                self.reject()
+                Handler.close()
+            elif Handler.slaveRec[self.key] == 'pull':
                 # 当工作节点发送完成后进入工作节点自身的下一轮循环，但主节点仍处于poll状态，这时需要处理冲突，
                 # 即主节点需要向等待连接的工作节点发送拒绝信号
                 self.reject()
@@ -90,30 +92,40 @@ class Handler(socketserver.BaseRequestHandler):
             if msg == 'accept':
                 self.key = key
                 Handler.slaveRec[key] = 'verify'
+                if verbose:
+                    print('[VERBOSE] %s are verified.' % str(self.key))
                 return True
         else:
             if send(self.request, 'pass'):
                 self.key = key
                 Handler.slaveRec[self.key] = 'verify'
+                if verbose:
+                    print('[VERBOSE] %s are verified.' % str(self.key))
                 return True
         return False
 
     # 将工作节点key与数据绑定，若绑定列表已满则向客户端发送reject，并在工作节点状态记录器中添加拒绝
     def bind(self):
         if verbose:
-            print('new connection coming: %s' % str(self.key))
+            print('[VERBOSE] new connection coming: %s' % str(self.key))
         Handler.semInput.acquire()
         if len(Handler.inputList):
             Handler.taskBinds[self.key] = Handler.inputList.pop()
             Handler.seqBinds[self.key] = len(Handler.inputList)
             Handler.slaveRec[self.key] = 'bind'
             if verbose:
-                print('new connection are bound: %s' % str(self.key))
+                print('<tasks remain = %s>' % len(Handler.inputList))
             Handler.semInput.release()
+            if verbose:
+                print('[VERBOSE] new connection are bound: %s' % str(self.key))
             return True
         else:
-            Handler.semInput.release()
+            if verbose:
+                print('<tasks remain = %s> : %s' % (len(Handler.inputList), str(self.key)))
             Handler.slaveRec[self.key] = 'reject'
+            Handler.semInput.release()
+            if verbose:
+                print('[VERBOSE] new connection are rejected: %s' % str(self.key))
             send(self.request, 'reject')
             return False
 
@@ -130,7 +142,7 @@ class Handler(socketserver.BaseRequestHandler):
         #     return False
         Handler.slaveRec[self.key] = 'push'
         if verbose:
-            print('data have sent to: %s' % str(self.key))
+            print('[VERBOSE] data have sent to: %s' % str(self.key))
         # # 补丁，保证工作节点开始运行时刻相同
         # flag = False
         # if receive(self.request):
@@ -148,7 +160,7 @@ class Handler(socketserver.BaseRequestHandler):
             # status = np.array(list(Handler.slaveRec.values()))
             # status = np.logical_or(
             #     np.logical_or(status == 'push', status == 'compute'),
-            #     np.logical_or(status == 'poll', status == 'reject'))
+            #     np.logical_or(status == 'pull', status == 'reject'))
             # if not status.all():
             #     send(self.request, 'negative')
             # elif send(self.request, 'positive'):
@@ -157,62 +169,70 @@ class Handler(socketserver.BaseRequestHandler):
             status = np.array(list(Handler.slaveRec.values()))
             status = np.logical_or(
                 np.logical_or(status == 'push', status == 'compute'),
-                np.logical_or(status == 'poll', status == 'reject'))
+                np.logical_or(status == 'pull', status == 'reject'))
             while not status.all():
                 status = np.array(list(Handler.slaveRec.values()))
                 status = np.logical_or(
                     np.logical_or(status == 'push', status == 'compute'),
-                    np.logical_or(status == 'poll', status == 'reject'))
+                    np.logical_or(status == 'pull', status == 'reject'))
             send(self.request, 'positive')
             Handler.slaveRec[self.key] = 'compute'
+            if verbose:
+                print('[VERBOSE] computing: %s' % str(self.key))
             return True
         return False
 
     # 等待slave返回计算结果
-    def poll(self):
+    def pull(self):
         data = receive(self.request)
         if not data:
             if verbose:
-                print("receiving data fail: %s" % str(self.key))
+                print("[VERBOSE] receiving data fail: %s" % str(self.key))
             return False
         else:
             Handler.semOutput.acquire()
             Handler.outputList[Handler.seqBinds[self.key]] = data
-            Handler.slaveRec[self.key] = 'poll'
+            Handler.slaveRec[self.key] = 'pull'
             if verbose:
                 print('data have been received from: %s' % str(self.key))
             Handler.semOutput.release()
             return True
 
     def reject(self):
-        if send(self.request, 'reject'):
+        if Handler.slaveRec[self.key] != 'reject':
             Handler.slaveRec[self.key] = 'reject'
-            return True
-        return False
+        send(self.request, 'reject')
 
     # 当所有线程执行完毕时，关闭服务（尝试关闭socket server），增加reject情况
     @staticmethod
     def close():
         status = np.array(list(Handler.slaveRec.values()))
-        if np.logical_or(status == 'poll', status == 'reject').all():
+        if np.logical_or(status == 'pull', status == 'reject').all():
             Handler.server.shutdown()
 
     # 在主节点程序中调用以执行分布式任务
     @staticmethod
     def run(host, port, inputList):
         Handler.reset()
-        ADDR = (host, port)
-        Handler.server = socketserver.ThreadingTCPServer(ADDR, Handler)
+        if not Handler.server:
+            Handler.server = socketserver.ThreadingTCPServer((host, port), Handler)
+            Handler.server.allow_reuse_address = True
+        # 心态崩了
+        Handler.semInput.acquire()
         Handler.inputList = copy.deepcopy(inputList)
-        Handler.server.allow_reuse_address = True
+        Handler.semInput.release()
+
+        Handler.server.__shutdown_request = False
+        # while not Handler.inputList:
+        #     time.sleep(0.1)
         Handler.server.serve_forever()
-        Handler.server.server_close()
+        # Handler.server.server_close()
         return Handler.outputList
 
     # 重置静态变量
     @staticmethod
     def reset():
-        Handler.server = None
+        # Handler.server = None
         Handler.slaveRec = {}
         Handler.taskBinds = {}
         Handler.seqBinds = {}

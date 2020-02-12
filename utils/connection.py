@@ -6,7 +6,7 @@ import time
 import uuid
 
 # 日志语句输出开关
-verbose = False  # type:bool
+verbose = True  # type:bool
 # 失败等待延迟
 DELAY = 1
 # 服务器地址

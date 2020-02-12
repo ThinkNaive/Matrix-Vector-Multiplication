@@ -150,4 +150,4 @@ if __name__ == "__main__":
     np.save('statistics/' + params['strategy'] + 'StopTime_' + params['id'] + '.npy', stops)
 
     print('Average Latency = ' + str(np.mean(stops)))
-    print('Run Time = ', str(time.time() - startTime))
+    print('Run Time = ', str(time.time() - startTime), sep='')

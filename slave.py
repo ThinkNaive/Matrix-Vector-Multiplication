@@ -4,7 +4,7 @@ import time
 
 import numpy as np
 
-from utils.connection import HOST, PORT, DELAY
+from utils.connection import HOST, PORT
 from utils.slaveHandler import Handler
 
 
@@ -25,23 +25,20 @@ def multiply(source):
 
 
 class Work:
-    def __init__(self):
+    def __init__(self, key=None):
+        self.key = key
         self.stop = [False]
 
     def end(self):
         self.stop[0] = True
 
     def run(self):
-        handle = Handler(HOST, PORT, self.stop)  # 传入引用变量
+        handle = Handler(HOST, PORT, self.key, self.stop)  # 传入引用变量
 
         while not self.stop[0]:
             # 接收数据，若接收数据为None表明未分配计算任务，则直接退出
-            data = handle.poll()
-            if not data:
-                # print(handle.key + ' is rejected.')
-                time.sleep(DELAY)
-            else:
-                # print(handle.key + ' is obtained.')
+            data = handle.pull()
+            if data:
                 # 询问是否可计算
                 handle.compute()
                 # 计算任务
@@ -53,10 +50,20 @@ class Work:
 
 if __name__ == "__main__":
     threadNum = 10  # 一台物理机上最多运行几个工作节点
+    keys = ['client-a',
+            'client-b',
+            'client-c',
+            'client-d',
+            'client-e',
+            'client-f',
+            'client-g',
+            'client-h',
+            'client-i',
+            'client-j']
     works = []
     try:
         for i in range(threadNum):
-            work = Work()
+            work = Work(keys[i])
             t = threading.Thread(target=work.run)
             works.append(work)
             t.start()

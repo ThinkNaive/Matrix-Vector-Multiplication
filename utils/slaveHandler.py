@@ -7,8 +7,8 @@ from utils.connection import send, receive, DELAY, DataClient
 
 # 工作节点函数
 class Handler:
-    def __init__(self, host, port, signal):
-        self.key = None
+    def __init__(self, host, port, key, signal):
+        self.key = key
         self.addr = (host, port)
         self.sock = None
         self.stop = signal
@@ -47,19 +47,20 @@ class Handler:
         return False
 
     # 工作节点向主节点获取计算任务，若未能分配则返回None
-    def poll(self):
+    def pull(self):
         while not self.stop[0]:
             self.sock = self.connect()
             if not self.verify():
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
-            print(str(self.key) + ' poll verified.')
+            print(str(self.key) + ' pull verified.')
             # 开始任务传输通信
             msg = receive(self.sock)
             if msg == 'reject':
                 self.sock.close()
-                print(self.key + ' poll rejected.')
+                print(self.key + ' pull rejected.')
+                time.sleep(DELAY)
                 return None
             if msg == 'push':
                 dc = DataClient(self.stop)
@@ -116,6 +117,7 @@ class Handler:
             if send(self.sock, data):
                 self.sock.close()
                 print(self.key + ' sent data.')
+                time.sleep(DELAY)
                 return
             self.sock.close()
             print(self.key + ' push rejected.')

@@ -22,7 +22,7 @@
 ### 步骤2
 &emsp;&emsp;`handle.compute()`询问是否可计算
 ### 步骤3
-&emsp;&emsp;`handle.poll()`接收主节点数据，若返回`None`则表明主节点拒绝为其分配计算任务。
+&emsp;&emsp;`handle.pull()`接收主节点数据，若返回`None`则表明主节点拒绝为其分配计算任务。
 ### 步骤4
 &emsp;&emsp;`handle.push(data)`向主节点发送数据，此方法将持续至数据发送完成。
 
