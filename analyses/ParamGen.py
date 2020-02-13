@@ -12,19 +12,14 @@ if __name__ == '__main__':
     iteration = 10
     params = [{'id': '01', 'strategy': 'rep', 'p': 10, 'repNum': 1},
               {'id': '02', 'strategy': 'rep', 'p': 10, 'repNum': 2},
-              {'id': '03', 'strategy': 'rep', 'p': 10, 'repNum': 3},
-              {'id': '04', 'strategy': 'mds', 'p': 10, 'k': 3},
-              {'id': '05', 'strategy': 'mds', 'p': 10, 'k': 4},
-              {'id': '06', 'strategy': 'mds', 'p': 10, 'k': 5},
-              {'id': '07', 'strategy': 'mds', 'p': 10, 'k': 6},
-              {'id': '08', 'strategy': 'mds', 'p': 10, 'k': 7},
-              {'id': '09', 'strategy': 'mds', 'p': 10, 'k': 8},
-              {'id': '10', 'strategy': 'mds', 'p': 10, 'k': 9},
-              {'id': '11', 'strategy': 'mds', 'p': 10, 'k': 10},
-              {'id': '12', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.25},
-              {'id': '13', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.5},
-              {'id': '14', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0},
-              {'id': '15', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 3.0}]
+              {'id': '04', 'strategy': 'mds', 'p': 10, 'k': 4},
+              {'id': '05', 'strategy': 'mds', 'p': 10, 'k': 5},
+              {'id': '08', 'strategy': 'mds', 'p': 10, 'k': 8},
+              {'id': '10', 'strategy': 'mds', 'p': 10, 'k': 10},
+              {'id': '11', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.25},
+              {'id': '12', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.5},
+              {'id': '13', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0},
+              {'id': '14', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 3.0}]
 
     for param in params:
         for row in rows:
