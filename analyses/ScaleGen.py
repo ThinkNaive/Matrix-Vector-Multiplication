@@ -27,11 +27,11 @@ if __name__ == '__main__':
 
             keys, times, comps, stops = run(A, x, iteration, param)
 
-            np.save('statistics/' + param['strategy'] + '_' + str(row) + '_Exp.npy', time.time() - startTime)
-            np.save('statistics/' + param['strategy'] + '_' + str(row) + '_Key.npy', keys)
-            np.save('statistics/' + param['strategy'] + '_' + str(row) + '_Time.npy', times)
-            np.save('statistics/' + param['strategy'] + '_' + str(row) + '_Comp.npy', comps)
-            np.save('statistics/' + param['strategy'] + '_' + str(row) + '_Stop.npy', stops)
+            np.save('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Exp.npy', time.time() - startTime)
+            np.save('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Key.npy', keys)
+            np.save('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Time.npy', times)
+            np.save('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Comp.npy', comps)
+            np.save('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Stop.npy', stops)
 
             print('Average Latency = ' + str(np.mean(stops)))
             print('Run Time = ', str(time.time() - startTime), sep='')
