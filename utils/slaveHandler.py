@@ -21,6 +21,10 @@ class Handler:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print('connecting to ' + str(self.addr) + ' ...')
         if self.stop[0]:
+            try:
+                sock.shutdown(2)
+            except socket.error:
+                pass
             sock.close()
             exit()
         return sock
@@ -51,6 +55,7 @@ class Handler:
         while not self.stop[0]:
             self.sock = self.connect()
             if not self.verify():
+                self.sock.shutdown(2)
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
@@ -58,16 +63,18 @@ class Handler:
             # 开始任务传输通信
             msg = receive(self.sock)
             if msg == 'reject':
+                self.sock.shutdown(2)
                 self.sock.close()
                 print(self.key + ' pull rejected.')
                 time.sleep(DELAY)
                 return None
             if msg == 'push':
                 dc = DataClient(self.stop)
-                msg = dc.pollData(self.sock)
+                msg = dc.pullData(self.sock)
                 # msg = receive(self.sock)
                 if msg:
                     print(self.key + ' got data.')
+                    self.sock.shutdown(2)
                     self.sock.close()
                     return msg
                 # # 补丁，保证工作节点开始运行时刻相同
@@ -77,9 +84,10 @@ class Handler:
                 # print()
                 # # 补丁结束
             # 已建立连接但传输计算任务失败，需要重启工作节点
+            self.sock.shutdown(2)
             self.sock.close()
             time.sleep(DELAY)
-
+        self.sock.shutdown(2)
         self.sock.close()
         exit()
 
@@ -88,6 +96,7 @@ class Handler:
         while not self.stop[0]:
             self.sock = self.connect()
             if not self.verify():
+                self.sock.shutdown(2)
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
@@ -96,9 +105,11 @@ class Handler:
             if send(self.sock, 'Request Compute'):
                 msg = receive(self.sock)
                 if msg == 'positive':
+                    self.sock.shutdown(2)
                     self.sock.close()
                     return True
             print(self.key + ' compute rejected.')
+            self.sock.shutdown(2)
             self.sock.close()
             time.sleep(DELAY)
         self.sock.close()
@@ -109,24 +120,31 @@ class Handler:
         while not self.stop[0]:
             self.sock = self.connect()
             if not self.verify():
+                self.sock.shutdown(2)
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
             print(str(self.key) + ' push verified.')
             # 开始任务传输通信
             if send(self.sock, data):
+                self.sock.shutdown(2)
                 self.sock.close()
                 print(self.key + ' sent data.')
                 time.sleep(DELAY)
                 return
+            self.sock.shutdown(2)
             self.sock.close()
             print(self.key + ' push rejected.')
             time.sleep(DELAY)
-
+        self.sock.shutdown(2)
         self.sock.close()
         exit()
 
     # 终止
     def close(self):
+        try:
+            self.sock.shutdown(2)
+        except socket.error:
+            pass
         self.sock.close()
         self.sock = None

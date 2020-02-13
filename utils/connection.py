@@ -6,7 +6,7 @@ import time
 import uuid
 
 # 日志语句输出开关
-verbose = True  # type:bool
+verbose = False  # type:bool
 # 失败等待延迟
 DELAY = 1
 # 服务器地址
@@ -136,7 +136,7 @@ class DataClient:
         self.sock = None
         self.stop = stop
 
-    def pollData(self, request):
+    def pullData(self, request):
         # 请求数据传输端口信息
         self.port = receive(request)
         if self.port and 5001 <= self.port <= 65535:
@@ -156,7 +156,6 @@ class DataClient:
         if self.stop[0]:
             return None
         # 从主节点接收数据
-        print(request, ' receiving data.')
         return receive(self.sock)
 
 

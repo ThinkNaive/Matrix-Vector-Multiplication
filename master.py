@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 from utils.codecs import repEncoder, repDecoder, mdsEncoder, mdsDecoder, ltEncoder, ltDecoder
-from utils.connection import HOST, PORT
+from utils.connection import PORT
 from utils.masterHandler import Handler
 from utils.performanceHandler import repAnalytics, mdsAnalytics, ltAnalytics
 
@@ -62,8 +62,9 @@ def run(A, x, iteration, params):
     stopTime = np.zeros(iteration)
     for i in range(iteration):
         print('iteration %s' % i, end='')
-        results = Handler.run(HOST, PORT, subMatList)
-
+        results = None
+        while not results:
+            results = Handler.run(PORT, subMatList)
         taskKeys = {}
         taskTimes = {}
         taskIndexes = {}

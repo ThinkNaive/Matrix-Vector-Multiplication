@@ -1,5 +1,6 @@
 # coding=utf-8
 import copy
+import socket
 import socketserver
 import threading
 import time
@@ -30,34 +31,31 @@ class Handler(socketserver.BaseRequestHandler):
 
     def __init__(self, request, client_address, server):
         socketserver.BaseRequestHandler.__init__(self, request, client_address, server)
-        # 此处为成员变量
         self.key = None  # 工作节点的唯一标志
+
+    def setup(self):
+        self.key = None
 
     def handle(self):
         # 必须考虑断线重连情况
         # 下面的判断将poll注释掉，这是因为在push后客户端主动与服务端解除握手，等计算完成后再尝试连接
-        self.key = None
-        status = self.verify()
-        if not status:  # 验证失败
-            return
-        elif status == 'member':  # 客户端通过验证，已分配key
-            if Handler.slaveRec[self.key] == 'verify':
-                if not self.bind():
-                    return
-                if not self.push():
-                    return
-            elif Handler.slaveRec[self.key] == 'bind':
-                if not self.push():
-                    return
-            elif Handler.slaveRec[self.key] == 'push':
-                if not self.compute():
-                    return
-            elif Handler.slaveRec[self.key] == 'compute':
-                if not self.pull():
-                    return
-                self.reject()
-                Handler.close()
-            elif Handler.slaveRec[self.key] == 'pull':
+        if self.verify() == 'member':  # 客户端通过验证，已分配key
+            if not Handler.slaveRec.__contains__(self.key):
+                return
+            else:
+                status = Handler.slaveRec[self.key]
+            if status == 'verify':
+                if self.bind():
+                    self.push()
+            elif status == 'bind':
+                self.push()
+            elif status == 'push':
+                self.compute()
+            elif status == 'compute':
+                if self.pull():
+                    self.reject()
+                    Handler.close()
+            elif status == 'pull':
                 # 当工作节点发送完成后进入工作节点自身的下一轮循环，但主节点仍处于poll状态，这时需要处理冲突，
                 # 即主节点需要向等待连接的工作节点发送拒绝信号
                 self.reject()
@@ -91,7 +89,7 @@ class Handler(socketserver.BaseRequestHandler):
             msg = receive(self.request)
             if msg == 'accept':
                 self.key = key
-                Handler.slaveRec[key] = 'verify'
+                Handler.slaveRec[self.key] = 'verify'
                 if verbose:
                     print('[VERBOSE] %s are verified.' % str(self.key))
                 return True
@@ -209,20 +207,19 @@ class Handler(socketserver.BaseRequestHandler):
         status = np.array(list(Handler.slaveRec.values()))
         if np.logical_or(status == 'pull', status == 'reject').all():
             Handler.server.shutdown()
+            Handler.server.__shutdown_request = False
 
     # 在主节点程序中调用以执行分布式任务
     @staticmethod
-    def run(host, port, inputList):
-        Handler.reset()
+    def run(port, inputList):
         if not Handler.server:
-            Handler.server = socketserver.ThreadingTCPServer((host, port), Handler)
-            Handler.server.allow_reuse_address = True
+            Handler.server = ThrTCPSrv(('', port), Handler)
         # 心态崩了
         Handler.semInput.acquire()
+        Handler.reset()
         Handler.inputList = copy.deepcopy(inputList)
         Handler.semInput.release()
 
-        Handler.server.__shutdown_request = False
         # while not Handler.inputList:
         #     time.sleep(0.1)
         Handler.server.serve_forever()
@@ -236,5 +233,10 @@ class Handler(socketserver.BaseRequestHandler):
         Handler.slaveRec = {}
         Handler.taskBinds = {}
         Handler.seqBinds = {}
-        Handler.inputList = []
         Handler.outputList = {}
+
+
+class ThrTCPSrv(socketserver.ThreadingTCPServer):
+    def server_bind(self):
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind(self.server_address)
