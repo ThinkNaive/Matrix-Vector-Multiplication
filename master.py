@@ -136,6 +136,7 @@ if __name__ == "__main__":
     col = 1000
     iteration = 10
 
+    # 测试使用，数据分析请见analyses目录
     params = {'id': '1', 'strategy': 'rep', 'p': 10, 'repNum': 2}
     # params = {'id': '2', 'strategy': 'mds', 'p': 10, 'k': 5}
     # params = {'id': '3', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0}
@@ -145,10 +146,10 @@ if __name__ == "__main__":
 
     keys, times, comps, stops = run(A, x, iteration, params)
 
-    np.save('statistics/' + params['strategy'] + 'Keys_' + params['id'] + '.npy', keys)
-    np.save('statistics/' + params['strategy'] + 'Times_' + params['id'] + '.npy', times)
-    np.save('statistics/' + params['strategy'] + 'Comps_' + params['id'] + '.npy', comps)
-    np.save('statistics/' + params['strategy'] + 'StopTime_' + params['id'] + '.npy', stops)
+    np.save('statistics/Test_' + params['strategy'] + 'Keys_' + params['id'] + '.npy', keys)
+    np.save('statistics/Test' + params['strategy'] + 'Times_' + params['id'] + '.npy', times)
+    np.save('statistics/Test' + params['strategy'] + 'Comps_' + params['id'] + '.npy', comps)
+    np.save('statistics/Test' + params['strategy'] + 'StopTime_' + params['id'] + '.npy', stops)
 
     print('Average Latency = ' + str(np.mean(stops)))
     print('Run Time = ', str(time.time() - startTime), sep='')

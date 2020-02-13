@@ -3,6 +3,8 @@
     <words>
       <w>bufsize</w>
       <w>dtype</w>
+      <w>probs</w>
+      <w>soliton</w>
       <w>vect</w>
     </words>
   </dictionary>
