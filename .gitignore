@@ -9,3 +9,5 @@ Handler.pyc
 .idea/dictionaries/Think.xml
 __pycache__/Handler.cpython-37.pyc
 reference
+/.idea/distributed_system.iml
+/.idea/misc.xml
