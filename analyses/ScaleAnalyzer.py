@@ -48,7 +48,7 @@ if __name__ == '__main__':
         plt.plot(rows, durations, color=color[i], label=label.upper(), marker=marker[i])
 
     plt.legend()
-    plt.savefig('figures/Scale_TotalTimeComparison.svg')
+    plt.savefig('figures/Scale_TotalTimeComparison.svg', bbox_inches='tight')
     plt.show()
 
     # 计算节点总耗时
@@ -77,7 +77,7 @@ if __name__ == '__main__':
             plt.plot(rows, latency, color=color[i], label=label.upper(), marker=marker[i])
 
     plt.legend()
-    plt.savefig('figures/Scale_LatencyComparison.svg')
+    plt.savefig('figures/Scale_LatencyComparison.svg', bbox_inches='tight')
     plt.show()
 
     # 计算节点总次数
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         plt.plot(rows, computation, color=color[i], label=label.upper(), marker=marker[i])
 
     plt.legend()
-    plt.savefig('figures/Scale_ComputationComparison.svg')
+    plt.savefig('figures/Scale_ComputationComparison.svg', bbox_inches='tight')
     plt.show()
 
     # 计算量与耗时对比
@@ -126,5 +126,5 @@ if __name__ == '__main__':
             plt.plot(latency, computation, color=color[i], label=label.upper(), marker=marker[i])
 
     plt.legend()
-    plt.savefig('figures/Scale_ComputationVsLatency.svg')
+    plt.savefig('figures/Scale_ComputationVsLatency.svg', bbox_inches='tight')
     plt.show()

@@ -35,7 +35,7 @@ def mdsEncoder(mat, k, p):
     encRows = int(p * rows / k)
     subRows = int(rows / k)
     encMap = np.random.normal(size=(p, k))  # (p,k) MDS编码，用于编码以及后面的逆矩阵方式解码
-    encMat = np.zeros((encRows, cols), dtype=np.float32)
+    encMat = np.zeros((encRows, cols), dtype=np.float64)
     for i in range(p):  # p
         for j in range(k):  # k
             # 按k个循环，放在新的A_enc上，权值为服从正态分布的随机数
@@ -87,7 +87,7 @@ def ltEncoder(mat, c, delta, alpha):
     rows, cols = mat.shape
     encRows = int(alpha * rows)
     prob = RS(rows, c, delta)
-    encMat = np.zeros((encRows, cols), dtype=np.int64)
+    encMat = np.zeros((encRows, cols), dtype=np.float64)
     encMap = []
     for encIndex in range(encRows):
         if encIndex % 100 == 0:
@@ -104,7 +104,7 @@ def ltDecoder(encRes, encMap, finishList, slaveNum, row):
     # 采用遍历图的方式解码，从少的来，如果无法解码则再扩大编码行
     # encRes是计算结果b_e
     # finishList结构为（节点，编码行索引，完成时间）的有序递增排列
-    decRes = np.zeros(row, dtype=np.int64)
+    decRes = np.zeros(row, dtype=np.float64)
     decRes[:] = -1  # 设一个不可能的值为初值
     decNum = 0  # 解码行数
     soleList = []  # 度为1的编码行列表，即编码行与原始行单独对应

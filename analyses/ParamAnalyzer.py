@@ -48,7 +48,7 @@ if __name__ == '__main__':
     for i, (x, y) in enumerate(zip(latency[0:2], computation[0:2])):
         plt.annotate(r'$r$=%s' % params[i]['repNum'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
     for i, (x, y) in enumerate(zip(latency[2:6], computation[2:6])):
-        plt.annotate(r'$k$=%s' % params[i+2]['k'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
+        plt.annotate(r'$k$=%s' % params[i + 2]['k'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
 
     plt.annotate('',
                  xy=(280, 165000),
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     sub = fig.add_axes([0.4, 0.5, 0.25, 0.25])
     sub.plot(latency[6:12], computation[6:12], color=color[2], label=params[6]['strategy'].upper(), marker=marker[2])
     for i, (x, y) in enumerate(zip(latency[6:12], computation[6:12])):
-        sub.annotate(r'$\alpha$=%s' % params[i+6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
+        sub.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
 
-    plt.savefig('figures/Param_ComputationVsLatency.svg')
+    plt.savefig('figures/Param_ComputationVsLatency.svg', dpi=150, bbox_inches='tight')
     plt.show()

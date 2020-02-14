@@ -137,12 +137,12 @@ if __name__ == "__main__":
     iteration = 10
 
     # 测试使用，数据分析请见analyses目录
-    params = {'id': '1', 'strategy': 'rep', 'p': 10, 'repNum': 2}
-    # params = {'id': '2', 'strategy': 'mds', 'p': 10, 'k': 5}
+    # params = {'id': '1', 'strategy': 'rep', 'p': 10, 'repNum': 2}
+    params = {'id': '2', 'strategy': 'mds', 'p': 10, 'k': 5}
     # params = {'id': '3', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0}
 
-    A = np.random.randint(256, size=(row, col))
-    x = np.random.randint(256, size=(col, 1))
+    A = np.random.rand(row, col) * 256
+    x = np.random.rand(col, 1) * 256
 
     keys, times, comps, stops = run(A, x, iteration, params)
 

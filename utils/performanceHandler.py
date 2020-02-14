@@ -74,7 +74,7 @@ def ltAnalytics(taskTimes, taskIndexes):
     # 完成时间为从节点开始计算至完成本行计算的时间
     finishList = []
     for slave in taskTimes:
-        finishList.extend([(slave, taskIndexes[slave][index], taskTimes[slave][index][1] - taskTimes[slave][0][0])
+        finishList.extend([(slave, taskIndexes[slave][index], taskTimes[slave][index][1] - startTime)
                            for index in range(len(taskIndexes[slave]))])  # 每行计算的完成时间
     finishList = sorted(finishList, key=lambda x: x[2])
     return finishList
