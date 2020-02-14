@@ -20,11 +20,11 @@ if __name__ == '__main__':
         computation = []
 
         for row in rows:
-            total = np.load('statistics/' + param['strategy'] + '_' + str(row) + '_Exp.npy')
-            keys = np.load('statistics/' + param['strategy'] + '_' + str(row) + '_Key.npy')
-            times = np.load('statistics/' + param['strategy'] + '_' + str(row) + '_Time.npy')
-            comps = np.load('statistics/' + param['strategy'] + '_' + str(row) + '_Comp.npy')
-            stops = np.load('statistics/' + param['strategy'] + '_' + str(row) + '_Stop.npy')
+            total = np.load('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Exp.npy')
+            keys = np.load('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Key.npy')
+            times = np.load('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Time.npy')
+            comps = np.load('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Comp.npy')
+            stops = np.load('statistics/Scale_' + param['strategy'] + '_' + str(row) + '_Stop.npy')
 
             durations.append(total)
             latency.append(np.mean(stops))
@@ -48,7 +48,7 @@ if __name__ == '__main__':
         plt.plot(rows, durations, color=color[i], label=label.upper(), marker=marker[i])
 
     plt.legend()
-    plt.savefig('figures/TotalTimeComparison.svg')
+    plt.savefig('figures/Scale_TotalTimeComparison.svg')
     plt.show()
 
     # 计算节点总耗时
@@ -77,7 +77,7 @@ if __name__ == '__main__':
             plt.plot(rows, latency, color=color[i], label=label.upper(), marker=marker[i])
 
     plt.legend()
-    plt.savefig('figures/LatencyComparison.svg')
+    plt.savefig('figures/Scale_LatencyComparison.svg')
     plt.show()
 
     # 计算节点总次数
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         plt.plot(rows, computation, color=color[i], label=label.upper(), marker=marker[i])
 
     plt.legend()
-    plt.savefig('figures/ComputationComparison.svg')
+    plt.savefig('figures/Scale_ComputationComparison.svg')
     plt.show()
 
     # 计算量与耗时对比
@@ -126,5 +126,5 @@ if __name__ == '__main__':
             plt.plot(latency, computation, color=color[i], label=label.upper(), marker=marker[i])
 
     plt.legend()
-    plt.savefig('figures/ComputationVsLatency.svg')
+    plt.savefig('figures/Scale_ComputationVsLatency.svg')
     plt.show()
