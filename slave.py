@@ -60,7 +60,7 @@ class Work:
 
 
 if __name__ == "__main__":
-    threadNum = 10  # 一台物理机上最多运行几个工作节点
+    threadNum = 1  # 一台物理机上最多运行几个工作节点
     params = [{'key': 'client-a', 'init': 0.0, 'ratio': 1.0},
               {'key': 'client-b', 'init': 1.0, 'ratio': 2.0},
               {'key': 'client-c', 'init': 0.0, 'ratio': 1.0},

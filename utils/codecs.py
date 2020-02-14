@@ -8,7 +8,7 @@ def repEncoder(mat, repNum, slaveNum):
     subRows = int(rows * repNum / slaveNum)
     chunkNum = int(slaveNum / repNum)  # 每个工作节点工作重叠，因此chunks记录了最小工作节点数
     encMap = (slaveNum, chunkNum)  # 记录工作节点数与最小需求节点数
-    encMat = np.zeros((encRows, cols), dtype=np.int)
+    encMat = np.zeros((encRows, cols), dtype=np.float64)
     for i in range(slaveNum):  # 为工作节点指派了存在相互重叠的任务
         j = int(i / repNum)
         encMat[i * subRows:(i + 1) * subRows, :] = mat[j * subRows:(j + 1) * subRows, :]
@@ -18,7 +18,7 @@ def repEncoder(mat, repNum, slaveNum):
 def repDecoder(encRes, repMat, doneList):
     slaveNum = repMat[0]
     repNum = int(repMat[0] / repMat[1])
-    decRes = np.zeros(encRes.shape, dtype=np.int)
+    decRes = np.zeros(encRes.shape, dtype=np.float64)
     rows = encRes.shape[0]
     subRows = int(rows * repNum / slaveNum)
     encIndex = 0
