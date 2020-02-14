@@ -12,21 +12,32 @@ def multiply(source):
     slaveRows = source[0]
     slaveMat = source[1]
     vect = source[2]
-    slaveTimes = []
-    slaveValues = []
-    slaveIndexes = []
+    taskTime = []
+    taskValue = []
+    taskIndex = []
     rowNumber = slaveMat.shape[0]
     for index in range(rowNumber):
         startTime = time.process_time()
-        slaveValues.append(np.dot(slaveMat[index], vect))
-        slaveIndexes.append(slaveRows[index])
-        slaveTimes.append((startTime, time.process_time()))
-    return slaveTimes, slaveIndexes, slaveValues
+        taskValue.append(np.dot(slaveMat[index], vect))
+        taskIndex.append(slaveRows[index])
+        taskTime.append((startTime, time.process_time()))
+    return taskTime, taskIndex, taskValue
+
+
+def delaySimulate(data, initDelay, ratioDelay):
+    taskTime = []
+    taskIndex = data[1]
+    taskValue = data[2]
+    for (start, end) in data[0]:
+        taskTime.append((start + initDelay, start + initDelay + ratioDelay * (end - start)))
+    return taskTime, taskIndex, taskValue
 
 
 class Work:
-    def __init__(self, key=None):
-        self.key = key
+    def __init__(self, param):
+        self.key = param['key']
+        self.initDelay = param['init']
+        self.ratioDelay = param['ratio']
         self.stop = [False]
 
     def end(self):
@@ -42,7 +53,7 @@ class Work:
                 # 询问是否可计算
                 handle.compute()
                 # 计算任务
-                result = (handle.key,) + multiply(data)
+                result = (handle.key,) + delaySimulate(multiply(data), self.initDelay, self.ratioDelay)
                 # 发送数据
                 handle.push(result)
             handle.close()
@@ -50,20 +61,20 @@ class Work:
 
 if __name__ == "__main__":
     threadNum = 10  # 一台物理机上最多运行几个工作节点
-    keys = ['client-a',
-            'client-b',
-            'client-c',
-            'client-d',
-            'client-e',
-            'client-f',
-            'client-g',
-            'client-h',
-            'client-i',
-            'client-j']
+    params = [{'key': 'client-a', 'init': 0.0, 'ratio': 1.0},
+              {'key': 'client-b', 'init': 1.0, 'ratio': 2.0},
+              {'key': 'client-c', 'init': 0.0, 'ratio': 1.0},
+              {'key': 'client-d', 'init': 0.5, 'ratio': 2.0},
+              {'key': 'client-e', 'init': 0.0, 'ratio': 1.0},
+              {'key': 'client-f', 'init': 1.0, 'ratio': 1.5},
+              {'key': 'client-g', 'init': 0.0, 'ratio': 1.0},
+              {'key': 'client-h', 'init': 0.5, 'ratio': 1.5},
+              {'key': 'client-i', 'init': 0.0, 'ratio': 1.0},
+              {'key': 'client-j', 'init': 0.0, 'ratio': 1.0}]
     works = []
     try:
         for i in range(threadNum):
-            work = Work(keys[i])
+            work = Work(params[i])
             t = threading.Thread(target=work.run)
             works.append(work)
             t.start()
