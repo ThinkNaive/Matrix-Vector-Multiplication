@@ -36,11 +36,9 @@ def decode(data):
 # lock为线程同步锁，保证单个端口缓冲不抢占
 def send(request, data, lock=True):
     msg = encode(data) + 'EOF'.encode('utf-8')  # 将数据结构编码为bytes
-    if trySend(request, msg, lock):
-        time.sleep(0.1)  # 解决粘包问题
-        return True
+    status = trySend(request, msg, lock)
     time.sleep(0.1)  # 解决粘包问题
-    return False
+    return status
 
 
 # 判断发送缓冲区大小并发送数据

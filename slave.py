@@ -76,7 +76,7 @@ if __name__ == "__main__":
     for i in range(len(params)):
         u = random.random()
         params[i]['init'] = -np.log(1 - u)
-        params[i]['ratio'] = 1 - np.log(1 - u)
+        params[i]['ratio'] = 1 - np.log(1 - u)**3
 
     works = []
     try:

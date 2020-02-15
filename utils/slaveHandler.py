@@ -27,6 +27,7 @@ class Handler:
                 pass
             sock.close()
             exit()
+        sock.settimeout(5)
         return sock
 
     # 工作节点在进行认证过程中若有必要则进行注册，因此在主方法中无需调用register
