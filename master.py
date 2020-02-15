@@ -63,7 +63,7 @@ def run(A, x, iteration, params):
     for i in range(iteration):
         print('iteration %s' % i, end='')
         results = None
-        while not results:
+        while not results or len(results) != slaveNum:
             results = Handler.run(PORT, subMatList)
         taskKeys = {}
         taskTimes = {}
