@@ -54,12 +54,12 @@ class Handler(socketserver.BaseRequestHandler):
             elif status == 'compute':
                 if self.pull():
                     self.reject()
-                    Handler.close()
+                    self.close()
             elif status == 'pull':
-                # 当工作节点发送完成后进入工作节点自身的下一轮循环，但主节点仍处于poll状态，这时需要处理冲突，
+                # 当工作节点发送完成后进入工作节点自身的下一轮循环，但主节点仍处于pull状态，这时需要处理冲突，
                 # 即主节点需要向等待连接的工作节点发送拒绝信号
                 self.reject()
-                Handler.close()
+                self.close()
             else:  # reject
                 self.reject()
 
@@ -188,37 +188,40 @@ class Handler(socketserver.BaseRequestHandler):
     def reject(self):
         if Handler.slaveRec[self.key] != 'reject':
             Handler.slaveRec[self.key] = 'reject'
+        time.sleep(DELAY)
         send(self.request, 'reject')
 
     # 当所有线程执行完毕时，关闭服务（尝试关闭socket server），增加reject情况
-    @staticmethod
-    def close():
+    def close(self):
         status = np.array(list(Handler.slaveRec.values()))
         if np.logical_or(status == 'pull', status == 'reject').all():
+            try:
+                self.request.shutdown(2)
+            except socket.error:
+                pass
             Handler.server.shutdown()
             Handler.server.__shutdown_request = False
 
     # 在主节点程序中调用以执行分布式任务
     @staticmethod
     def run(port, inputList):
-        if not Handler.server:
-            Handler.server = ThrTCPSrv(('', port), Handler)
         # 心态崩了
         Handler.semInput.acquire()
         Handler.reset()
         Handler.inputList = copy.deepcopy(inputList)
         Handler.semInput.release()
 
+        Handler.server = ThrTCPSrv(('', port), Handler)
         # while not Handler.inputList:
         #     time.sleep(0.1)
         Handler.server.serve_forever()
-        # Handler.server.server_close()
+        Handler.server.server_close()
         return Handler.outputList
 
     # 重置静态变量
     @staticmethod
     def reset():
-        # Handler.server = None
+        Handler.server = None
         Handler.slaveRec = {}
         Handler.taskBinds = {}
         Handler.seqBinds = {}
