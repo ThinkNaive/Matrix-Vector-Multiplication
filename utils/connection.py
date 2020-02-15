@@ -66,7 +66,12 @@ def receive(request):
     rec = b''
     try:
         while True:
-            data = request.recv(request.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF))  # type:bytes
+            bufSize = request.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
+            if bufSize == 0:
+                print('receive data error')
+                rec = None
+                break
+            data = request.recv(bufSize)  # type:bytes
             if not data:
                 print('receive data error')
                 rec = None

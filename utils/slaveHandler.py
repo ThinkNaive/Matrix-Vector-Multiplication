@@ -69,6 +69,7 @@ class Handler:
                 time.sleep(DELAY)
                 return None
             if msg == 'push':
+                print(self.key + ' acquiring data.')
                 dc = DataClient(self.stop)
                 msg = dc.pullData(self.sock)
                 # msg = receive(self.sock)

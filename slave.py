@@ -17,10 +17,10 @@ def multiply(source):
     taskIndex = []
     rowNumber = slaveMat.shape[0]
     for index in range(rowNumber):
-        startTime = time.process_time()
+        startTime = time.time()
         taskValue.append(np.dot(slaveMat[index], vect))
         taskIndex.append(slaveRows[index])
-        taskTime.append((startTime, time.process_time()))
+        taskTime.append((startTime, time.time()))
     return taskTime, taskIndex, taskValue
 
 
@@ -60,11 +60,11 @@ class Work:
 
 
 if __name__ == "__main__":
-    threadNum = 1  # 一台物理机上最多运行几个工作节点
+    threadNum = 10  # 一台物理机上最多运行几个工作节点
     params = [{'key': 'client-a', 'init': 0.0, 'ratio': 1.0},
-              {'key': 'client-b', 'init': 1.0, 'ratio': 2.0},
+              {'key': 'client-b', 'init': 1.0, 'ratio': 5.0},
               {'key': 'client-c', 'init': 0.0, 'ratio': 1.0},
-              {'key': 'client-d', 'init': 0.5, 'ratio': 2.0},
+              {'key': 'client-d', 'init': 5.0, 'ratio': 2.0},
               {'key': 'client-e', 'init': 0.0, 'ratio': 1.0},
               {'key': 'client-f', 'init': 1.0, 'ratio': 1.5},
               {'key': 'client-g', 'init': 0.0, 'ratio': 1.0},
@@ -73,8 +73,8 @@ if __name__ == "__main__":
               {'key': 'client-j', 'init': 0.0, 'ratio': 1.0}]
     works = []
     try:
-        for i in range(threadNum):
-            work = Work(params[i])
+        for param in params:
+            work = Work(param)
             t = threading.Thread(target=work.run)
             works.append(work)
             t.start()
