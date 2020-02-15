@@ -54,12 +54,12 @@ class Handler(socketserver.BaseRequestHandler):
             elif status == 'compute':
                 if self.pull():
                     self.reject()
-                    self.close()
+                    Handler.close()
             elif status == 'pull':
                 # 当工作节点发送完成后进入工作节点自身的下一轮循环，但主节点仍处于pull状态，这时需要处理冲突，
                 # 即主节点需要向等待连接的工作节点发送拒绝信号
                 self.reject()
-                self.close()
+                Handler.close()
             else:  # reject
                 self.reject()
 
@@ -194,11 +194,11 @@ class Handler(socketserver.BaseRequestHandler):
         send(self.request, 'reject')
 
     # 当所有线程执行完毕时，关闭服务（尝试关闭socket server），增加reject情况
-    def close(self):
+    @staticmethod
+    def close():
         status = np.array(list(Handler.slaveRec.values()))
         if np.logical_or(status == 'pull', status == 'reject').all():
             try:
-                self.request.shutdown(2)
                 Handler.server.shutdown()
                 Handler.server.__shutdown_request = False
             except socket.error:
