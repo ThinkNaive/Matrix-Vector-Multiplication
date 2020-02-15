@@ -26,13 +26,14 @@ if __name__ == '__main__':
             A = np.random.randint(256, size=(row, col))
             x = np.random.randint(256, size=(col, 1))
 
-            keys, times, comps, stops = run(A, x, iteration, param)
+            keys, times, comps, stops, ideals = run(A, x, iteration, param)
 
             np.save('statistics/Scale_' + param['strategy'] + '_' + param['id'] + '_' + str(row) + '_Exp.npy', time.time() - startTime)
             np.save('statistics/Scale_' + param['strategy'] + '_' + param['id'] + '_' + str(row) + '_Key.npy', keys)
             np.save('statistics/Scale_' + param['strategy'] + '_' + param['id'] + '_' + str(row) + '_Time.npy', times)
             np.save('statistics/Scale_' + param['strategy'] + '_' + param['id'] + '_' + str(row) + '_Comp.npy', comps)
             np.save('statistics/Scale_' + param['strategy'] + '_' + param['id'] + '_' + str(row) + '_Stop.npy', stops)
+            np.save('statistics/Scale_' + param['strategy'] + '_' + param['id'] + '_' + str(row) + '_Ideal.npy', ideals)
 
             print('Average Latency = ' + str(np.mean(stops)))
             print('Run Time = ', str(time.time() - startTime), sep='')

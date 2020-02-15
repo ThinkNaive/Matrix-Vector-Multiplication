@@ -60,6 +60,8 @@ def run(A, x, iteration, params):
     slaveTimes = np.zeros((iteration, slaveNum))
     slaveComps = np.zeros((iteration, slaveNum))
     stopTime = np.zeros(iteration)
+    idealTime = np.zeros(iteration)
+
     for i in range(iteration):
         print('iteration %s' % i, end='')
         results = None
@@ -113,7 +115,7 @@ def run(A, x, iteration, params):
         else:  # 'lt'
             finishList = ltAnalytics(taskTimes, taskIndexes)
             ltMap = copy.deepcopy(castMap)
-            decRes, doneList, slaveTimes[i, :], slaveComps[i, :], stopTime[i] = ltDecoder(
+            decRes, doneList, slaveTimes[i, :], slaveComps[i, :], stopTime[i], idealTime[i] = ltDecoder(
                 encRes,
                 ltMap,
                 finishList,
@@ -124,7 +126,7 @@ def run(A, x, iteration, params):
 
         err = np.linalg.norm(decRes - trueRes) / np.linalg.norm(trueRes)
         print(', error=%s%%' % (err * 100))
-    return slaveKeys, slaveTimes, slaveComps, stopTime
+    return slaveKeys, slaveTimes, slaveComps, stopTime, idealTime
 
 
 if __name__ == "__main__":
@@ -144,12 +146,13 @@ if __name__ == "__main__":
     A = np.random.rand(row, col) * 256
     x = np.random.rand(col, 1) * 256
 
-    keys, times, comps, stops = run(A, x, iteration, params)
+    keys, times, comps, stops, ideals = run(A, x, iteration, params)
 
     np.save('statistics/Test_' + params['strategy'] + 'Keys_' + params['id'] + '.npy', keys)
-    np.save('statistics/Test' + params['strategy'] + 'Times_' + params['id'] + '.npy', times)
-    np.save('statistics/Test' + params['strategy'] + 'Comps_' + params['id'] + '.npy', comps)
-    np.save('statistics/Test' + params['strategy'] + 'StopTime_' + params['id'] + '.npy', stops)
+    np.save('statistics/Test_' + params['strategy'] + 'Times_' + params['id'] + '.npy', times)
+    np.save('statistics/Test_' + params['strategy'] + 'Comps_' + params['id'] + '.npy', comps)
+    np.save('statistics/Test_' + params['strategy'] + 'StopTime_' + params['id'] + '.npy', stops)
+    np.save('statistics/Test_' + params['strategy'] + 'IdealTime_' + params['id'] + '.npy', ideals)
 
     print('Average Latency = ' + str(np.mean(stops)))
     print('Run Time = ', str(time.time() - startTime), sep='')

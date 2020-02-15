@@ -147,6 +147,8 @@ def ltDecoder(encRes, encMap, finishList, slaveNum, row):
     if decNum < row:
         print('[ERROR] insufficient decode rows.')
 
+    # 理想节点的计算完成时间
+    idealTime = finishList[row - 1][2]
     # 所有计算完成的时间
     stopTime = finishList[findNum - 1][2]
     # 完成计算的节点序号
@@ -160,4 +162,4 @@ def ltDecoder(encRes, encMap, finishList, slaveNum, row):
         if not doneList.__contains__(finishList[i][0]):
             doneList.append(finishList[i][0])
     print(', threshold=%s' % findNum, end='')
-    return decRes, doneList, slaveTimes, slaveComps, stopTime
+    return decRes, doneList, slaveTimes, slaveComps, stopTime, idealTime

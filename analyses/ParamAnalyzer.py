@@ -1,6 +1,7 @@
 # coding=utf-8
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import ConnectionStyle
 
 if __name__ == '__main__':
     rows = [10000]
@@ -26,7 +27,7 @@ if __name__ == '__main__':
         comps = np.load('statistics/Param_' + param['strategy'] + '_' + param['id'] + '_Comp.npy')
         stops = np.load('statistics/Param_' + param['strategy'] + '_' + param['id'] + '_Stop.npy')
         latency.append(np.mean(stops))
-        computation.append(np.sum(comps))
+        computation.append(np.sum(comps) / rows[0] / 10)  # comp/m，平均每次迭代
 
     color = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
     marker = ['o', '^', 's', 'D', 'x', '*', '+']
@@ -34,8 +35,8 @@ if __name__ == '__main__':
     # 计算节点总次数
     fig = plt.figure(num=1, figsize=(6, 4), dpi=150)
     plt.title('Computation vs Latency')
-    plt.xlabel('Latency (s)')
-    plt.ylabel('computation (row)')
+    plt.xlabel('latency (s)')
+    plt.ylabel('computation/$m$ (ratio)')
 
     plt.plot(latency[0:2], computation[0:2], color=color[0], label=params[0]['strategy'].upper(), marker=marker[0])
     plt.plot(latency[2:6], computation[2:6], color=color[1], label=params[2]['strategy'].upper(), marker=marker[1])
@@ -47,19 +48,19 @@ if __name__ == '__main__':
     for i, (x, y) in enumerate(zip(latency[2:6], computation[2:6])):
         plt.annotate(r'$k$=%s' % params[i + 2]['k'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
 
-    # plt.annotate('',
-    #              xy=(280, 165000),
-    #              xytext=(25, 110000),
-    #              arrowprops=dict(arrowstyle='fancy',
-    #                              color='#1E90FF',
-    #                              connectionstyle=ConnectionStyle("Angle3, angleA=25, angleB=-115")))
-    #
-    # sub = fig.add_axes([0.4, 0.5, 0.25, 0.25])
-    # sub.plot(latency[6:12], computation[6:12], color=color[2], label=params[6]['strategy'].upper(), marker=marker[2])
-    # for i, (x, y) in enumerate(zip(latency[6:12], computation[6:12])):
-    #     sub.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
+    plt.annotate('',
+                 xy=(3.6, 1.28),
+                 xytext=(3.45, 1.07),
+                 arrowprops=dict(arrowstyle='fancy',
+                                 color='#1E90FF',
+                                 connectionstyle=ConnectionStyle("Angle3, angleA=45, angleB=-100")))
+
+    sub = fig.add_axes([0.25, 0.4, 0.25, 0.25])
+    sub.plot(latency[6:12], computation[6:12], color=color[2], label=params[6]['strategy'].upper(), marker=marker[2])
     for i, (x, y) in enumerate(zip(latency[6:12], computation[6:12])):
-        plt.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
+        sub.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
+    # for i, (x, y) in enumerate(zip(latency[6:12], computation[6:12])):
+    #     plt.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
 
     plt.savefig('figures/Param_ComputationVsLatency.svg', dpi=150, bbox_inches='tight')
     plt.show()
