@@ -107,15 +107,21 @@ class Handler:
             if send(self.sock, 'Request Compute'):
                 msg = receive(self.sock)
                 if msg == 'positive':
-                    self.sock.shutdown(2)
-                    self.sock.close()
-                    return True
+                    time.sleep(0.1)
+                    if send(self.sock, 'ack'):
+                        try:
+                            self.sock.shutdown(2)
+                            self.sock.close()
+                        except Exception:
+                            break
+                        log.info(self.key + ' compute start.')
+                        return True
             log.info(self.key + ' compute rejected.')
             try:
                 self.sock.shutdown(2)
-            except socket.error:
+                self.sock.close()
+            except Exception:
                 pass
-            self.sock.close()
             time.sleep(DELAY)
         self.sock.close()
         exit()
@@ -150,7 +156,7 @@ class Handler:
     def close(self):
         try:
             self.sock.shutdown(2)
-        except socket.error:
+            self.sock.close()
+        except Exception:
             pass
-        self.sock.close()
         self.sock = None

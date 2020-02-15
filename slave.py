@@ -58,6 +58,7 @@ class Work:
                 # 发送数据
                 handle.push(result)
             handle.close()
+            time.sleep(5)
 
 
 if __name__ == "__main__":

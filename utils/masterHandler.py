@@ -156,6 +156,7 @@ class Handler(socketserver.BaseRequestHandler):
             # elif send(self.request, 'positive'):
             #     Handler.slaveRec[self.key] = 'compute'
             #     return True
+            time.sleep(0.1)
             status = np.array(list(Handler.slaveRec.values()))
             status = np.logical_or(
                 np.logical_or(status == 'push', status == 'compute'),
@@ -165,10 +166,11 @@ class Handler(socketserver.BaseRequestHandler):
                 status = np.logical_or(
                     np.logical_or(status == 'push', status == 'compute'),
                     np.logical_or(status == 'pull', status == 'reject'))
-            send(self.request, 'positive')
-            Handler.slaveRec[self.key] = 'compute'
-            log.debug('computing: %s' % str(self.key))
-            return True
+            if send(self.request, 'positive'):
+                if receive(self.request) == 'ack':
+                    Handler.slaveRec[self.key] = 'compute'
+                    log.debug('computing: %s' % str(self.key))
+                    return True
         return False
 
     # 等待slave返回计算结果

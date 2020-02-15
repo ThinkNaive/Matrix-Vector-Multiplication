@@ -7,7 +7,7 @@ import time
 import uuid
 
 # 日志语句输出等级开关
-level = logging.INFO
+level = logging.DEBUG
 logging.basicConfig(level=level, format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 log = logging.getLogger()
 
@@ -47,16 +47,16 @@ def trySend(request, msg, lock):
     while pt < len(msg):
         if lock:
             sem.acquire()
-        bufSize = request.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF)
-        if bufSize > 0:
-            try:
+        try:
+            bufSize = request.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF)
+            if bufSize > 0:
                 request.send(msg[pt:pt + bufSize])
                 pt += bufSize
-            except Exception as e:
-                log.debug(e)
-                if lock:
-                    sem.release()
-                return False
+        except Exception as e:
+            log.debug(e)
+            if lock:
+                sem.release()
+            return False
         if lock:
             sem.release()
     return True
@@ -189,11 +189,15 @@ class DataClient:
             return False
 
         # 向主节点发送数据
+        log.info('dataSize=%s' % len(pickle.dumps(data)))
         if send(self.sock, data, lock=False):
             self.sock.close()
             return True
 
-        self.sock.close()
+        try:
+            self.sock.close()
+        except Exception:
+            pass
         return False
 
 

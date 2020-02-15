@@ -11,16 +11,16 @@ if __name__ == '__main__':
     col = 10000
     iteration = 10
     params = [
-        # {'id': '01', 'strategy': 'rep', 'p': 10, 'repNum': 1},
-        # {'id': '02', 'strategy': 'rep', 'p': 10, 'repNum': 2},
+        {'id': '01', 'strategy': 'rep', 'p': 10, 'repNum': 1},
+        {'id': '02', 'strategy': 'rep', 'p': 10, 'repNum': 2},
         {'id': '03', 'strategy': 'mds', 'p': 10, 'k': 4},
-        {'id': '04', 'strategy': 'mds', 'p': 10, 'k': 5},
-        {'id': '05', 'strategy': 'mds', 'p': 10, 'k': 8},
-        {'id': '06', 'strategy': 'mds', 'p': 10, 'k': 10},
-        {'id': '07', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.25},
-        {'id': '08', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.5},
-        {'id': '09', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0},
-        {'id': '10', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 3.0}
+        # {'id': '04', 'strategy': 'mds', 'p': 10, 'k': 5},
+        # {'id': '05', 'strategy': 'mds', 'p': 10, 'k': 8},
+        # {'id': '06', 'strategy': 'mds', 'p': 10, 'k': 10},
+        # {'id': '07', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.25},
+        # {'id': '08', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.5},
+        # {'id': '09', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0},
+        # {'id': '10', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 3.0}
     ]
 
     for param in params:
