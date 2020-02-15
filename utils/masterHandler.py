@@ -197,10 +197,10 @@ class Handler(socketserver.BaseRequestHandler):
         if np.logical_or(status == 'pull', status == 'reject').all():
             try:
                 self.request.shutdown(2)
+                Handler.server.shutdown()
+                Handler.server.__shutdown_request = False
             except socket.error:
                 pass
-            Handler.server.shutdown()
-            Handler.server.__shutdown_request = False
 
     # 在主节点程序中调用以执行分布式任务
     @staticmethod

@@ -135,6 +135,9 @@ class DataServer:
         self.server.close()
         return False
 
+    def pullData(self, request):
+        pass
+
 
 class DataClient:
     def __init__(self, stop):

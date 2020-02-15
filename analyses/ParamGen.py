@@ -11,8 +11,8 @@ if __name__ == '__main__':
     col = 10000
     iteration = 10
     params = [
-        {'id': '01', 'strategy': 'rep', 'p': 10, 'repNum': 1},
-        {'id': '02', 'strategy': 'rep', 'p': 10, 'repNum': 2},
+        # {'id': '01', 'strategy': 'rep', 'p': 10, 'repNum': 1},
+        # {'id': '02', 'strategy': 'rep', 'p': 10, 'repNum': 2},
         {'id': '03', 'strategy': 'mds', 'p': 10, 'k': 4},
         {'id': '04', 'strategy': 'mds', 'p': 10, 'k': 5},
         {'id': '05', 'strategy': 'mds', 'p': 10, 'k': 8},
