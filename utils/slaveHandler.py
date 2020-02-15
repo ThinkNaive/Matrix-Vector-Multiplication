@@ -27,7 +27,7 @@ class Handler:
                 pass
             sock.close()
             exit()
-        sock.settimeout(5)
+        sock.settimeout(30)
         return sock
 
     # 工作节点在进行认证过程中若有必要则进行注册，因此在主方法中无需调用register
@@ -111,7 +111,10 @@ class Handler:
                     self.sock.close()
                     return True
             log.info(self.key + ' compute rejected.')
-            self.sock.shutdown(2)
+            try:
+                self.sock.shutdown(2)
+            except socket.error:
+                pass
             self.sock.close()
             time.sleep(DELAY)
         self.sock.close()
