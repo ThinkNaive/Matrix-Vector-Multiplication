@@ -1,3 +1,4 @@
+import logging
 import pickle
 import random
 import socket
@@ -5,8 +6,11 @@ import threading
 import time
 import uuid
 
-# 日志语句输出开关
-verbose = False  # type:bool
+# 日志语句输出等级开关
+level = logging.INFO
+logging.basicConfig(level=level, format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+log = logging.getLogger()
+
 # 失败等待延迟
 DELAY = 1
 # 服务器地址
@@ -51,7 +55,7 @@ def trySend(request, msg, lock):
                 request.send(msg[pt:pt + bufSize])
                 pt += bufSize
             except Exception as e:
-                print(e)
+                log.debug(e)
                 if lock:
                     sem.release()
                 return False
@@ -68,12 +72,12 @@ def receive(request):
         while True:
             bufSize = request.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
             if bufSize == 0:
-                print('receive data error')
+                log.debug('receive buffer empty')
                 rec = None
                 break
             data = request.recv(bufSize)  # type:bytes
             if not data:
-                print('receive data error')
+                log.debug('receive data empty')
                 rec = None
                 break
             if data.endswith(b'EOF'):
@@ -83,7 +87,7 @@ def receive(request):
             rec += data
         rec = decode(rec)
     except Exception as e:
-        print(e)
+        log.debug(e)
         rec = None
     return rec
 

@@ -61,8 +61,6 @@ def mdsDecoder(encRes, mdsMat, doneList):
 def RS(m, c, delta):
     # 返回鲁棒孤子分布，即选择每一行的概率
     R = c * np.log(m / delta) * np.sqrt(m)
-    left = 0.0
-    right = 0.0
     pivot = round(m / R)
     rho = np.zeros(m)
     for index in range(m):

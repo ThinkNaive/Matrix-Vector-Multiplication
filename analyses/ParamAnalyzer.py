@@ -1,7 +1,6 @@
 # coding=utf-8
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import ConnectionStyle
 
 if __name__ == '__main__':
     rows = [10000]
@@ -17,9 +16,7 @@ if __name__ == '__main__':
         {'id': '07', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.25},
         {'id': '08', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.5},
         {'id': '09', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0},
-        {'id': '10', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 3.0},
-        {'id': '11', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 4.0},
-        {'id': '12', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 5.0}
+        {'id': '10', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 3.0}
     ]
 
     latency = []
@@ -50,17 +47,19 @@ if __name__ == '__main__':
     for i, (x, y) in enumerate(zip(latency[2:6], computation[2:6])):
         plt.annotate(r'$k$=%s' % params[i + 2]['k'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
 
-    plt.annotate('',
-                 xy=(280, 165000),
-                 xytext=(25, 110000),
-                 arrowprops=dict(arrowstyle='fancy',
-                                 color='#1E90FF',
-                                 connectionstyle=ConnectionStyle("Angle3, angleA=25, angleB=-115")))
-
-    sub = fig.add_axes([0.4, 0.5, 0.25, 0.25])
-    sub.plot(latency[6:12], computation[6:12], color=color[2], label=params[6]['strategy'].upper(), marker=marker[2])
+    # plt.annotate('',
+    #              xy=(280, 165000),
+    #              xytext=(25, 110000),
+    #              arrowprops=dict(arrowstyle='fancy',
+    #                              color='#1E90FF',
+    #                              connectionstyle=ConnectionStyle("Angle3, angleA=25, angleB=-115")))
+    #
+    # sub = fig.add_axes([0.4, 0.5, 0.25, 0.25])
+    # sub.plot(latency[6:12], computation[6:12], color=color[2], label=params[6]['strategy'].upper(), marker=marker[2])
+    # for i, (x, y) in enumerate(zip(latency[6:12], computation[6:12])):
+    #     sub.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
     for i, (x, y) in enumerate(zip(latency[6:12], computation[6:12])):
-        sub.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
+        plt.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
 
     plt.savefig('figures/Param_ComputationVsLatency.svg', dpi=150, bbox_inches='tight')
     plt.show()

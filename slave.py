@@ -1,4 +1,5 @@
 # coding=utf-8
+import random
 import threading
 import time
 
@@ -60,17 +61,23 @@ class Work:
 
 
 if __name__ == "__main__":
-    threadNum = 10  # 一台物理机上最多运行几个工作节点
-    params = [{'key': 'client-a', 'init': 0.0, 'ratio': 1.0},
-              {'key': 'client-b', 'init': 1.0, 'ratio': 5.0},
-              {'key': 'client-c', 'init': 0.0, 'ratio': 1.0},
-              {'key': 'client-d', 'init': 5.0, 'ratio': 2.0},
-              {'key': 'client-e', 'init': 0.0, 'ratio': 1.0},
-              {'key': 'client-f', 'init': 1.0, 'ratio': 1.5},
-              {'key': 'client-g', 'init': 0.0, 'ratio': 1.0},
-              {'key': 'client-h', 'init': 0.5, 'ratio': 1.5},
-              {'key': 'client-i', 'init': 0.0, 'ratio': 1.0},
-              {'key': 'client-j', 'init': 0.0, 'ratio': 1.0}]
+    random.seed(0)
+    # 取工作节点数量（线程数），且运行状况服从mu=1的指数分布
+    params = [{'key': 'client-a'},
+              {'key': 'client-b'},
+              {'key': 'client-c'},
+              {'key': 'client-d'},
+              {'key': 'client-e'},
+              {'key': 'client-f'},
+              {'key': 'client-g'},
+              {'key': 'client-h'},
+              {'key': 'client-i'},
+              {'key': 'client-j'}]
+    for i in range(len(params)):
+        u = random.random()
+        params[i]['init'] = -np.log(1 - u)
+        params[i]['ratio'] = 1 - np.log(1 - u)
+
     works = []
     try:
         for param in params:

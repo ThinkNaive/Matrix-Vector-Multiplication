@@ -7,7 +7,7 @@ import time
 
 import numpy as np
 
-from utils.connection import send, receive, UUID, verbose, DataServer, DELAY
+from utils.connection import send, receive, UUID, log, DataServer, DELAY
 
 
 # 主节点函数
@@ -90,40 +90,33 @@ class Handler(socketserver.BaseRequestHandler):
             if msg == 'accept':
                 self.key = key
                 Handler.slaveRec[self.key] = 'verify'
-                if verbose:
-                    print('[VERBOSE] %s are verified.' % str(self.key))
+                log.debug('%s are verified.' % str(self.key))
                 return True
         else:
             if send(self.request, 'pass'):
                 self.key = key
                 Handler.slaveRec[self.key] = 'verify'
-                if verbose:
-                    print('[VERBOSE] %s are verified.' % str(self.key))
+                log.debug('%s are verified.' % str(self.key))
                 return True
         return False
 
     # 将工作节点key与数据绑定，若绑定列表已满则向客户端发送reject，并在工作节点状态记录器中添加拒绝
     def bind(self):
-        if verbose:
-            print('[VERBOSE] new connection coming: %s' % str(self.key))
+        log.debug('new connection coming: %s' % str(self.key))
         Handler.semInput.acquire()
         if len(Handler.inputList):
             Handler.taskBinds[self.key] = Handler.inputList.pop()
             Handler.seqBinds[self.key] = len(Handler.inputList)
             Handler.slaveRec[self.key] = 'bind'
-            if verbose:
-                print('<tasks remain = %s>' % len(Handler.inputList))
+            log.debug('<tasks remain = %s>' % len(Handler.inputList))
             Handler.semInput.release()
-            if verbose:
-                print('[VERBOSE] new connection are bound: %s' % str(self.key))
+            log.debug('new connection are bound: %s' % str(self.key))
             return True
         else:
-            if verbose:
-                print('<tasks remain = %s> : %s' % (len(Handler.inputList), str(self.key)))
+            log.debug('<tasks remain = %s> : %s' % (len(Handler.inputList), str(self.key)))
             Handler.slaveRec[self.key] = 'reject'
             Handler.semInput.release()
-            if verbose:
-                print('[VERBOSE] new connection are rejected: %s' % str(self.key))
+            log.debug('new connection are rejected: %s' % str(self.key))
             send(self.request, 'reject')
             return False
 
@@ -139,8 +132,7 @@ class Handler(socketserver.BaseRequestHandler):
         # if not send(self.request, Handler.taskBinds[self.key]):
         #     return False
         Handler.slaveRec[self.key] = 'push'
-        if verbose:
-            print('[VERBOSE] data have sent to: %s' % str(self.key))
+        log.debug('data have sent to: %s' % str(self.key))
         # # 补丁，保证工作节点开始运行时刻相同
         # flag = False
         # if receive(self.request):
@@ -175,8 +167,7 @@ class Handler(socketserver.BaseRequestHandler):
                     np.logical_or(status == 'pull', status == 'reject'))
             send(self.request, 'positive')
             Handler.slaveRec[self.key] = 'compute'
-            if verbose:
-                print('[VERBOSE] computing: %s' % str(self.key))
+            log.debug('computing: %s' % str(self.key))
             return True
         return False
 
@@ -184,15 +175,13 @@ class Handler(socketserver.BaseRequestHandler):
     def pull(self):
         data = receive(self.request)
         if not data:
-            if verbose:
-                print("[VERBOSE] receiving data fail: %s" % str(self.key))
+            log.debug("receiving data fail: %s" % str(self.key))
             return False
         else:
             Handler.semOutput.acquire()
             Handler.outputList[Handler.seqBinds[self.key]] = data
             Handler.slaveRec[self.key] = 'pull'
-            if verbose:
-                print('data have been received from: %s' % str(self.key))
+            log.debug('data have been received from: %s' % str(self.key))
             Handler.semOutput.release()
             return True
 

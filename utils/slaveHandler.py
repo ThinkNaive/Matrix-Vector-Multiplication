@@ -2,7 +2,7 @@
 import socket
 import time
 
-from utils.connection import send, receive, DELAY, DataClient
+from utils.connection import send, receive, DELAY, DataClient, log
 
 
 # 工作节点函数
@@ -19,7 +19,7 @@ class Handler:
             sock.close()
             time.sleep(DELAY)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print('connecting to ' + str(self.addr) + ' ...')
+            log.info('connecting to ' + str(self.addr) + ' ...')
         if self.stop[0]:
             try:
                 sock.shutdown(2)
@@ -59,22 +59,22 @@ class Handler:
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
-            print(str(self.key) + ' pull verified.')
+            log.info(str(self.key) + ' pull verified.')
             # 开始任务传输通信
             msg = receive(self.sock)
             if msg == 'reject':
                 self.sock.shutdown(2)
                 self.sock.close()
-                print(self.key + ' pull rejected.')
+                log.info(self.key + ' pull rejected.')
                 time.sleep(DELAY)
                 return None
             if msg == 'push':
-                print(self.key + ' acquiring data.')
+                log.info(self.key + ' acquiring data.')
                 dc = DataClient(self.stop)
                 msg = dc.pullData(self.sock)
                 # msg = receive(self.sock)
                 if msg:
-                    print(self.key + ' got data.')
+                    log.info(self.key + ' got data.')
                     self.sock.shutdown(2)
                     self.sock.close()
                     return msg
@@ -101,7 +101,7 @@ class Handler:
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
-            print(str(self.key) + ' compute verified.')
+            log.info(str(self.key) + ' compute verified.')
             # 开始任务传输通信
             if send(self.sock, 'Request Compute'):
                 msg = receive(self.sock)
@@ -109,7 +109,7 @@ class Handler:
                     self.sock.shutdown(2)
                     self.sock.close()
                     return True
-            print(self.key + ' compute rejected.')
+            log.info(self.key + ' compute rejected.')
             self.sock.shutdown(2)
             self.sock.close()
             time.sleep(DELAY)
@@ -125,17 +125,17 @@ class Handler:
                 self.sock.close()
                 time.sleep(DELAY)
                 continue
-            print(str(self.key) + ' push verified.')
+            log.info(str(self.key) + ' push verified.')
             # 开始任务传输通信
             if send(self.sock, data):
                 self.sock.shutdown(2)
                 self.sock.close()
-                print(self.key + ' sent data.')
+                log.info(self.key + ' sent data.')
                 time.sleep(DELAY)
                 return
             self.sock.shutdown(2)
             self.sock.close()
-            print(self.key + ' push rejected.')
+            log.info(self.key + ' push rejected.')
             time.sleep(DELAY)
         self.sock.shutdown(2)
         self.sock.close()
