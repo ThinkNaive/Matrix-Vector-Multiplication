@@ -173,7 +173,9 @@ class Handler(socketserver.BaseRequestHandler):
 
     # 等待slave返回计算结果
     def pull(self):
-        data = receive(self.request)
+        ds = DataServer()
+        data = ds.pullData(self.request)
+        # data = receive(self.request)
         if not data:
             log.debug("receiving data fail: %s" % str(self.key))
             return False

@@ -131,7 +131,8 @@ class Handler:
                 continue
             log.info(str(self.key) + ' push verified.')
             # 开始任务传输通信
-            if send(self.sock, data):
+            dc = DataClient(self.stop)
+            if dc.pushData(self.sock, data):
                 self.sock.shutdown(2)
                 self.sock.close()
                 log.info(self.key + ' sent data.')

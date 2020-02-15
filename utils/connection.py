@@ -106,7 +106,7 @@ class DataServer:
         self.server = None
         self.sock = None
 
-    def pushData(self, request, data):
+    def assignPort(self, request):
         # 申请端口
         while self.port is None:
             self.port = random.randint(5001, 65535)
@@ -126,6 +126,12 @@ class DataServer:
                 time.sleep(DELAY)
                 self.server.close()
                 return False
+        return True
+
+    def pushData(self, request, data):
+        # 向工作节点协议端口
+        if not self.assignPort(request):
+            return False
 
         # 向工作节点发送数据
         if send(self.sock, data, lock=False):
@@ -136,7 +142,12 @@ class DataServer:
         return False
 
     def pullData(self, request):
-        pass
+        # 向工作节点协议端口
+        if not self.assignPort(request):
+            return None
+
+        # 从工作节点接收数据
+        return receive(self.sock)
 
 
 class DataClient:
@@ -146,7 +157,7 @@ class DataClient:
         self.sock = None
         self.stop = stop
 
-    def pullData(self, request):
+    def queryPort(self, request):
         # 请求数据传输端口信息
         self.port = receive(request)
         if self.port and 5001 <= self.port <= 65535:
@@ -157,16 +168,33 @@ class DataClient:
                 self.sock.connect((self.host, self.port))
                 if not send(request, 'ready'):
                     self.sock.close()
-                    return None
+                    return False
             except socket.error:
                 send(request, 'error')
                 self.sock.close()
-                return None
+                return False
+        return True
 
-        if self.stop[0]:
+    def pullData(self, request):
+        # 请求数据传输端口信息
+        if not self.queryPort(request) or self.stop[0]:
             return None
+
         # 从主节点接收数据
         return receive(self.sock)
+
+    def pushData(self, request, data):
+        # 请求数据传输端口信息
+        if not self.queryPort(request) or self.stop[0]:
+            return False
+
+        # 向主节点发送数据
+        if send(self.sock, data, lock=False):
+            self.sock.close()
+            return True
+
+        self.sock.close()
+        return False
 
 
 # class Tree(object):
