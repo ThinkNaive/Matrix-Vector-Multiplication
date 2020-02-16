@@ -7,7 +7,7 @@ import time
 import uuid
 
 # 日志语句输出等级开关
-level = logging.DEBUG
+level = logging.INFO
 logging.basicConfig(level=level, format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 log = logging.getLogger()
 

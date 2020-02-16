@@ -199,12 +199,15 @@ class Handler(socketserver.BaseRequestHandler):
     @staticmethod
     def close():
         status = np.array(list(Handler.slaveRec.values()))
-        if np.logical_or(status == 'pull', status == 'reject').all():
-            try:
+        try:
+            if np.logical_or(status == 'pull', status == 'reject').all():
                 Handler.server.shutdown()
                 Handler.server.__shutdown_request = False
-            except socket.error:
-                pass
+        except Warning as w:
+            log.debug('status = %s' % status)
+            log.debug(w)
+        except Exception:
+            pass
 
     # 在主节点程序中调用以执行分布式任务
     @staticmethod
