@@ -16,7 +16,7 @@ if __name__ == '__main__':
         {'id': '07', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.25},
         {'id': '08', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 1.5},
         {'id': '09', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 2.0},
-        # {'id': '10', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 3.0}
+        {'id': '10', 'strategy': 'lt', 'p': 10, 'c': 0.03, 'delta': 0.5, 'alpha': 3.0}
     ]
 
     latency = []
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     for i, (x, y) in enumerate(zip(latency[0:2], computation[0:2])):
         plt.annotate(r'$r$=%s' % params[i]['repNum'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
     for i, (x, y) in enumerate(zip(latency[2:6], computation[2:6])):
-        plt.annotate(r'$k$=%s' % params[i + 2]['k'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
+        plt.annotate(r'$k$=%s' % params[i + 2]['k'], xy=(x, y), xytext=(-10, 5), textcoords='offset points')
 
     # plt.annotate('',
     #              xy=(3.6, 1.28),
@@ -58,7 +58,10 @@ if __name__ == '__main__':
     # for i, (x, y) in enumerate(zip(latency[6:12], computation[6:12])):
     #     sub.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
     for i, (x, y) in enumerate(zip(latency[6:12], computation[6:12])):
-        plt.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=(0, 5), textcoords='offset points')
+        txtPos = (0, 5)
+        if params[i + 6]['id'] == '09':
+            txtPos = (0, -10)
+        plt.annotate(r'$\alpha$=%s' % params[i + 6]['alpha'], xy=(x, y), xytext=txtPos, textcoords='offset points')
 
     plt.legend(loc='upper left')
     plt.savefig('figures/Param_ComputationVsLatency.svg', dpi=150, bbox_inches='tight')
