@@ -125,7 +125,7 @@ def run(A, x, iteration, params):
                 slaveKeys[i].append(taskKeys[slave])
 
         err = np.linalg.norm(decRes - trueRes) / np.linalg.norm(trueRes)
-        print(', error=%s%%' % float(err * 100), end='', flush=True)
+        print(', error=%s%%' % float(err * 100), flush=True)
     return slaveKeys, slaveTimes, slaveComps, stopTime, idealTime
 
 

@@ -198,16 +198,25 @@ class Handler(socketserver.BaseRequestHandler):
     # 当所有线程执行完毕时，关闭服务（尝试关闭socket server），增加reject情况
     @staticmethod
     def close():
-        status = np.array(list(Handler.slaveRec.values()))
-        try:
-            if np.logical_or(status == 'pull', status == 'reject').all():
-                Handler.server.shutdown()
-                Handler.server.__shutdown_request = False
-        except Warning as w:
-            log.debug('status = %s' % status)
-            log.debug(w)
-        except Exception:
-            pass
+        Handler.semInput.acquire()
+        status = list(Handler.slaveRec.values())
+        flag = True
+        for st in status:
+            if not (st == 'pull' or st == 'reject'):
+                flag = False
+        if flag:
+            try:
+                if Handler.server:
+                    Handler.server.shutdown()
+                    Handler.server.__shutdown_request = False
+                    Handler.server = None
+            except Warning as w:
+                log.warning('status = %s' % status)
+                log.warning(w)
+            except Exception as e:
+                log.error('status = %s' % status)
+                log.error(e)
+        Handler.semInput.release()
 
     # 在主节点程序中调用以执行分布式任务
     @staticmethod
@@ -223,7 +232,6 @@ class Handler(socketserver.BaseRequestHandler):
         #     time.sleep(0.1)
         Handler.server.serve_forever()
         Handler.server.server_close()
-        Handler.reset()
         time.sleep(DELAY)
         return Handler.outputList
 

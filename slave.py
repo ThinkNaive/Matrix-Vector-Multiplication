@@ -62,7 +62,7 @@ class Work:
 
 
 if __name__ == "__main__":
-    random.seed(4)
+    random.seed(2333)
     # 取工作节点数量（线程数），且运行状况服从mu=1的指数分布
     params = [{'key': 'client-a'},
               {'key': 'client-b'},
@@ -76,8 +76,12 @@ if __name__ == "__main__":
               {'key': 'client-j'}]
     for i in range(len(params)):
         u = random.random()
-        params[i]['init'] = -np.log(1 - u)
-        params[i]['ratio'] = np.exp(-np.log(1 - u))
+        if u < 0.3:
+            params[i]['init'] = -np.log(u)
+            params[i]['ratio'] = np.exp(-np.log(u))
+        else:
+            params[i]['init'] = 0.0
+            params[i]['ratio'] = 1.0
 
     works = []
     try:
