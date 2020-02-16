@@ -63,7 +63,7 @@ def run(A, x, iteration, params):
     idealTime = np.zeros(iteration)
 
     for i in range(iteration):
-        print('iteration %s' % i, end='')
+        print('iteration=%s' % i, end='', flush=True)
         results = None
         while not results or len(results) != slaveNum:
             results = Handler.run(PORT, subMatList)
@@ -125,7 +125,7 @@ def run(A, x, iteration, params):
                 slaveKeys[i].append(taskKeys[slave])
 
         err = np.linalg.norm(decRes - trueRes) / np.linalg.norm(trueRes)
-        print(', error=%s%%' % (err * 100))
+        print(', error=%s%%' % float(err * 100), end='', flush=True)
     return slaveKeys, slaveTimes, slaveComps, stopTime, idealTime
 
 
@@ -154,5 +154,5 @@ if __name__ == "__main__":
     np.save('statistics/Test_' + params['strategy'] + 'StopTime_' + params['id'] + '.npy', stops)
     np.save('statistics/Test_' + params['strategy'] + 'IdealTime_' + params['id'] + '.npy', ideals)
 
-    print('Average Latency = ' + str(np.mean(stops)))
-    print('Run Time = ', str(time.time() - startTime), sep='')
+    print('Average Latency = %s' % float(np.mean(stops)), flush=True)
+    print('Run Time = %s' % float(time.time() - startTime), flush=True)

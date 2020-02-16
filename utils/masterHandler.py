@@ -223,6 +223,8 @@ class Handler(socketserver.BaseRequestHandler):
         #     time.sleep(0.1)
         Handler.server.serve_forever()
         Handler.server.server_close()
+        Handler.reset()
+        time.sleep(DELAY)
         return Handler.outputList
 
     # 重置静态变量

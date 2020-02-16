@@ -1,5 +1,6 @@
 # coding=utf-8
 import numpy as np
+from utils.connection import log
 
 
 def repEncoder(mat, repNum, slaveNum):
@@ -161,5 +162,5 @@ def ltDecoder(encRes, encMap, finishList, slaveNum, row):
         slaveComps[finishList[i][0]] += 1
         if not doneList.__contains__(finishList[i][0]):
             doneList.append(finishList[i][0])
-    print(', threshold=%s' % findNum, end='')
+    print(', threshold=%s' % findNum, end='', flush=True)
     return decRes, doneList, slaveTimes, slaveComps, stopTime, idealTime
