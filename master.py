@@ -148,11 +148,11 @@ if __name__ == "__main__":
 
     keys, times, comps, stops, ideals = run(A, x, iteration, params)
 
-    np.save('statistics/Test_' + params['strategy'] + 'Keys_' + params['id'] + '.npy', keys)
-    np.save('statistics/Test_' + params['strategy'] + 'Times_' + params['id'] + '.npy', times)
-    np.save('statistics/Test_' + params['strategy'] + 'Comps_' + params['id'] + '.npy', comps)
-    np.save('statistics/Test_' + params['strategy'] + 'StopTime_' + params['id'] + '.npy', stops)
-    np.save('statistics/Test_' + params['strategy'] + 'IdealTime_' + params['id'] + '.npy', ideals)
+    np.save('statistics/Test_' + params['strategy'] + '_' + params['id'] + '_Key' + '.npy', keys)
+    np.save('statistics/Test_' + params['strategy'] + '_' + params['id'] + '_Time' + '.npy', times)
+    np.save('statistics/Test_' + params['strategy'] + '_' + params['id'] + '_Comp' + '.npy', comps)
+    np.save('statistics/Test_' + params['strategy'] + '_' + params['id'] + '_Stop' + '.npy', stops)
+    np.save('statistics/Test_' + params['strategy'] + '_' + params['id'] + '_Ideal' + '.npy', ideals)
 
     print('Average Latency = %s' % float(np.mean(stops)), flush=True)
     print('Run Time = %s' % float(time.time() - startTime), flush=True)
