@@ -67,6 +67,7 @@ def run(A, x, iteration, params):
         results = None
         while not results or len(results) != slaveNum:
             results = Handler.run(PORT, subMatList)
+        results = sorted(list(results.values()), key=lambda e: e[0])
         taskKeys = {}
         taskTimes = {}
         taskIndexes = {}
