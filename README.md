@@ -6,13 +6,16 @@
 &emsp;&emsp;数据分析详见`analyses/ParamAnalyzer.py`、`analyses/ScaleAnalyzer.py`和`analyses/RSAnalyzer.py`。
 
 ## 测试方法
+
+&emsp;&emsp;为python指定根目录为工作目录。
+
 &emsp;&emsp;打开若干个命令行窗口，master一个，slave一个，分别在窗口调用`python master.py`和`python slave.py`。
 
 &emsp;&emsp;&emsp;&emsp;在`connection.py`中修改`verbose`，`HOST`，`PORT`；
 
-&emsp;&emsp;&emsp;&emsp;在`slave.py`中修改`threadNum`；
+&emsp;&emsp;&emsp;&emsp;在`slave.py`中修改`params`；
 
-&emsp;&emsp;&emsp;&emsp;在`master.py`中修改`row`，`col`，`iteration`，`index`，`params`。
+&emsp;&emsp;&emsp;&emsp;在`master.py`中修改`row`、`col`、`iteration`、`index`、`params`。
 
 ## 主节点代码含义（*master.py*）
 
@@ -35,6 +38,6 @@
 
 - [x] 分离主节点数据收发端口
 
-- [ ] 方法性能分析——参数对比实验
+- [x] 方法性能分析——参数对比实验
 
 - [x] 方法性能分析——规模对比实验
